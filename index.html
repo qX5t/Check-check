@@ -79,10 +79,10 @@
                     <h1 class="text-2xl font-extrabold tracking-tight text-pastel-900 leading-tight">ร้านธนภรรุ่งเรือง</h1>
                     <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1">
                         <span class="text-sm font-semibold text-pastel-500">ระบบเช็ควันหมดอายุสินค้าในร้าน</span>
-                        <!-- ป้ายแสดงการซิงค์ข้อมูลเรียลไทม์ -->
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200" id="cloudStatusBadge">
+                        <!-- ป้ายแสดงการซิงค์ข้อมูลเรียลไทม์ผ่าน Google Sheets -->
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200" id="cloudStatusBadge">
                             <span id="cloudStatusPulse" class="w-2 h-2 rounded-full bg-slate-400 mr-1.5 inline-block"></span>
-                            <span id="cloudStatusText">กำลังเริ่มต้นฐานข้อมูล...</span>
+                            <span id="cloudStatusText">กำลังดึงข้อมูล...</span>
                         </span>
                     </div>
                 </div>
@@ -90,7 +90,7 @@
 
             <!-- ปุ่มตั้งค่า Google Sheet สำหรับร้านค้า -->
             <button id="btnOpenConfig" class="inline-flex items-center space-x-2 bg-pastel-100 hover:bg-pastel-200 text-pastel-900 px-5 py-3 rounded-2xl text-sm font-bold transition duration-200 border-2 border-pastel-200">
-                <span>☁️ เชื่อมข้อมูลระบบคลาวด์</span>
+                <span>☁️ ตั้งค่าเชื่อมต่อ Google Sheet</span>
             </button>
         </div>
     </header>
@@ -98,7 +98,39 @@
     <!-- พื้นที่แสดงผลหลัก -->
     <main class="flex-1 max-w-5xl w-full mx-auto p-4 space-y-6 pb-20">
 
-        <!-- หน้าจอแถวบนสุด: จับคู่ฟอร์มบันทึกสินค้า (ซ้าย) คู่กับแผนภูมิสัดส่วน (ขวา) รองจากชื่อร้านทันที -->
+        <!-- แถวที่ 1 (บนสุด): กล่องข้อมูลตัวเลขสรุปสถานะสินค้า 4 กล่องสีพาสเทลหลัก ทำหน้าที่เป็นลิงก์กรองข้อมูลอัจฉริยะ (Grid cols 2) -->
+        <div class="grid grid-cols-2 gap-6 max-w-5xl mx-auto">
+            
+            <!-- ลิงก์ที่ 1: หมดอายุแล้ว (สีแดงพาสเทล สะดุดตา) -->
+            <div onclick="setFilterAndScroll('expired')" class="bg-[#fff5f5] hover:bg-[#fee2e2] active:scale-95 cursor-pointer p-6 sm:p-8 rounded-3xl border-2 border-rose-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow transition-all duration-150 group">
+                <span class="text-lg sm:text-xl font-extrabold text-rose-700">หมดอายุแล้ว!</span>
+                <span id="statExpired" class="text-5xl sm:text-6xl font-black text-rose-600 mt-2">0</span>
+                <span class="text-xs font-bold text-rose-500 mt-2 bg-rose-100 px-3 py-1 rounded-full group-hover:bg-rose-200 transition-colors">👉 แตะเพื่อดูสินค้ากลุ่มนี้ 🔎</span>
+            </div>
+            
+            <!-- ลิงก์ที่ 2: วิกฤต 1-7 วัน (สีส้มพาสเทล) -->
+            <div onclick="setFilterAndScroll('expiring')" class="bg-[#fffbeb] hover:bg-[#fef3c7] active:scale-95 cursor-pointer p-6 sm:p-8 rounded-3xl border-2 border-amber-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow transition-all duration-150 group">
+                <span class="text-lg sm:text-xl font-extrabold text-amber-700">วิกฤต (1-7 วัน)</span>
+                <span id="statExpiring" class="text-5xl sm:text-6xl font-black text-amber-600 mt-2">0</span>
+                <span class="text-xs font-bold text-amber-600 mt-2 bg-amber-100 px-3 py-1 rounded-full group-hover:bg-amber-200 transition-colors">👉 แตะเพื่อดูสินค้ากลุ่มนี้ 🔎</span>
+            </div>
+
+            <!-- ลิงก์ที่ 3: เฝ้าระวัง 8-15 วัน (สีเหลืองพาสเทล) -->
+            <div onclick="setFilterAndScroll('expiring_15')" class="bg-[#fffdf0] hover:bg-[#fffbeb] active:scale-95 cursor-pointer p-6 sm:p-8 rounded-3xl border-2 border-yellow-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow transition-all duration-150 group">
+                <span class="text-lg sm:text-xl font-extrabold text-yellow-700">เฝ้าระวัง (8-15 วัน)</span>
+                <span id="statExpiring15" class="text-5xl sm:text-6xl font-black text-yellow-600 mt-2">0</span>
+                <span class="text-xs font-bold text-yellow-600 mt-2 bg-yellow-100 px-3 py-1 rounded-full group-hover:bg-yellow-200 transition-colors">👉 แตะเพื่อดูสินค้ากลุ่มนี้ 🔎</span>
+            </div>
+
+            <!-- ลิงก์ที่ 4: ยังปลอดภัยอยู่ (สีเขียวพาสเทล) -->
+            <div onclick="setFilterAndScroll('safe')" class="bg-pastel-50 hover:bg-pastel-100 active:scale-95 cursor-pointer p-6 sm:p-8 rounded-3xl border-2 border-pastel-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow transition-all duration-150 group">
+                <span class="text-lg sm:text-xl font-extrabold text-pastel-700">ยังปลอดภัยอยู่</span>
+                <span id="statSafe" class="text-5xl sm:text-6xl font-black text-pastel-600 mt-2">0</span>
+                <span class="text-xs font-bold text-pastel-600 mt-2 bg-pastel-200 px-3 py-1 rounded-full group-hover:bg-pastel-300 transition-colors">👉 แตะเพื่อดูสินค้ากลุ่มนี้ 🔎</span>
+            </div>
+        </div>
+
+        <!-- หน้าจอแถวกลาง: จับคู่ฟอร์มบันทึกสินค้า (ซ้าย) คู่กับแผนภูมิสัดส่วน (ขวา)  -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
             
             <!-- ฝั่งซ้าย: ฟอร์มป้อนข้อมูลสินค้าขนาดใหญ่เป็นพิเศษ (Grid span 7) -->
@@ -184,38 +216,6 @@
 
         </div>
 
-        <!-- แถวถัดมา: กล่องข้อมูลตัวเลขสรุปสถานะสินค้า 4 กล่องสีพาสเทลหลัก ทำหน้าที่เป็นลิงก์กรองข้อมูลอัจฉริยะ (Grid cols 2) -->
-        <div class="grid grid-cols-2 gap-6 max-w-5xl mx-auto">
-            
-            <!-- ลิงก์ที่ 1: หมดอายุแล้ว (สีแดงพาสเทล สะดุดตา) -->
-            <div onclick="setFilterAndScroll('expired')" class="bg-[#fff5f5] hover:bg-[#fee2e2] active:scale-95 cursor-pointer p-6 sm:p-8 rounded-3xl border-2 border-rose-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow transition-all duration-150 group">
-                <span class="text-lg sm:text-xl font-extrabold text-rose-700">หมดอายุแล้ว!</span>
-                <span id="statExpired" class="text-5xl sm:text-6xl font-black text-rose-600 mt-2">0</span>
-                <span class="text-xs font-bold text-rose-500 mt-2 bg-rose-100 px-3 py-1 rounded-full group-hover:bg-rose-200 transition-colors">👉 แตะเพื่อดูสินค้ากลุ่มนี้ 🔎</span>
-            </div>
-            
-            <!-- ลิงก์ที่ 2: วิกฤต 1-7 วัน (สีส้มพาสเทล) -->
-            <div onclick="setFilterAndScroll('expiring')" class="bg-[#fffbeb] hover:bg-[#fef3c7] active:scale-95 cursor-pointer p-6 sm:p-8 rounded-3xl border-2 border-amber-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow transition-all duration-150 group">
-                <span class="text-lg sm:text-xl font-extrabold text-amber-700">วิกฤต (1-7 วัน)</span>
-                <span id="statExpiring" class="text-5xl sm:text-6xl font-black text-amber-600 mt-2">0</span>
-                <span class="text-xs font-bold text-amber-600 mt-2 bg-amber-100 px-3 py-1 rounded-full group-hover:bg-amber-200 transition-colors">👉 แตะเพื่อดูสินค้ากลุ่มนี้ 🔎</span>
-            </div>
-
-            <!-- ลิงก์ที่ 3: เฝ้าระวัง 8-15 วัน (สีเหลืองพาสเทล) -->
-            <div onclick="setFilterAndScroll('expiring_15')" class="bg-[#fffdf0] hover:bg-[#fffbeb] active:scale-95 cursor-pointer p-6 sm:p-8 rounded-3xl border-2 border-yellow-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow transition-all duration-150 group">
-                <span class="text-lg sm:text-xl font-extrabold text-yellow-700">เฝ้าระวัง (8-15 วัน)</span>
-                <span id="statExpiring15" class="text-5xl sm:text-6xl font-black text-yellow-600 mt-2">0</span>
-                <span class="text-xs font-bold text-yellow-600 mt-2 bg-yellow-100 px-3 py-1 rounded-full group-hover:bg-yellow-200 transition-colors">👉 แตะเพื่อดูสินค้ากลุ่มนี้ 🔎</span>
-            </div>
-
-            <!-- ลิงก์ที่ 4: ยังปลอดภัยอยู่ (สีเขียวพาสเทล) -->
-            <div onclick="setFilterAndScroll('safe')" class="bg-pastel-50 hover:bg-pastel-100 active:scale-95 cursor-pointer p-6 sm:p-8 rounded-3xl border-2 border-pastel-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow transition-all duration-150 group">
-                <span class="text-lg sm:text-xl font-extrabold text-pastel-700">ยังปลอดภัยอยู่</span>
-                <span id="statSafe" class="text-5xl sm:text-6xl font-black text-pastel-600 mt-2">0</span>
-                <span class="text-xs font-bold text-pastel-600 mt-2 bg-pastel-200 px-3 py-1 rounded-full group-hover:bg-pastel-300 transition-colors">👉 แตะเพื่อดูสินค้ากลุ่มนี้ 🔎</span>
-            </div>
-        </div>
-
         <!-- แถวล่างสุด: ส่วนแสดงรายการสินค้าคงคลังสะสมในร้านทั้งหมด -->
         <div id="products-section" class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-2 border-pastel-100 flex flex-col min-h-[450px] scroll-mt-6">
             
@@ -237,7 +237,7 @@
 
             <!-- ช่องพิมพ์ค้นหาด่วนตัวหนังสือใหญ่ -->
             <div class="relative mb-4">
-                <input type="text" id="searchTerm" oninput="renderProducts()" placeholder="🔍 ค้นหาสินค้าด่วนพิมพ์ตรงนี้... (เช่น นม, ขนมปัง, ตู้แช่)" class="w-full pl-12 pr-4 py-4 text-lg rounded-2xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-semibold bg-white text-pastel-900 placeholder-pastel-300">
+                <input type="text" id="searchTerm" oninput="renderProducts()" placeholder="🔍 ค้นหาสินค้าด่วนพิมพ์ตรงนี้... (เช่น นม, ขนมปัง)" class="w-full pl-12 pr-4 py-4 text-lg rounded-2xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-semibold bg-white text-pastel-900 placeholder-pastel-300">
             </div>
 
             <!-- รายการการ์ดสินค้า -->
@@ -256,23 +256,14 @@
 
     </main>
 
-    <!-- พื้นที่แสดงข้อมูลรหัสระบบคลาวด์เพื่อความสอดคล้องตามข้อกำหนดด้านความปลอดภัย -->
-    <footer class="bg-white border-t border-pastel-100 py-6 mt-12">
-        <div class="max-w-5xl mx-auto px-4 text-center text-xs text-pastel-500/80 space-y-1">
-            <p class="font-bold">🏪 ระบบเช็ควันหมดอายุ ร้านธนภรรุ่งเรือง — เรียลไทม์คลาวด์ซิงค์</p>
-            <p>รหัสฐานข้อมูลคลาวด์ประจำเครื่อง: <span id="userIdDisplay" class="font-mono bg-pastel-50 border border-pastel-100 px-2 py-0.5 rounded text-pastel-900 select-all font-bold">กำลังโหลด...</span></p>
-            <p class="text-[11px] text-pastel-400">ทุกเครื่องที่เปิดใช้งานหน้าจอนี้ร่วมกันจะมองเห็น คัดกรอง และลบสินค้าพร้อมกันทันที</p>
-        </div>
-    </footer>
-
-    <!-- Modal ตั้งค่า Google Sheets & Firebase Config ส่วนตัว -->
+    <!-- หน้าต่างตั้งค่า Google Sheet ที่สามารถซิงค์ได้สดข้ามอุปกรณ์ -->
     <div id="modalConfig" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pastel-900/50 backdrop-blur-sm hidden">
         <div class="bg-white rounded-3xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all duration-200 border-2 border-pastel-100">
             
             <div class="p-6 border-b-2 border-pastel-50 flex justify-between items-center bg-pastel-50">
                 <div>
-                    <h3 class="text-lg font-extrabold text-pastel-900">⚙️ การเชื่อมโยงระบบคลาวด์</h3>
-                    <p class="text-xs text-pastel-500 mt-1">ตั้งค่าเพื่อเชื่อมโยงกับฐานข้อมูลสเปรดชีตหรือระบบคลาวด์ภายนอก</p>
+                    <h3 class="text-lg font-extrabold text-pastel-900">☁️ เชื่อมระบบคลาวด์ Google Sheets</h3>
+                    <p class="text-xs text-pastel-500 mt-1">ทำให้มือถือและคอมพิวเตอร์ทุกเครื่องเปิดดูข้อมูลตรงกันและลบพร้อมกันได้ทันที</p>
                 </div>
                 <button id="btnCloseConfig" class="text-pastel-400 hover:text-pastel-600 p-2 rounded-xl hover:bg-pastel-100 transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -281,50 +272,40 @@
                 </button>
             </div>
 
-            <div class="p-6 overflow-y-auto space-y-6 text-sm text-pastel-600 leading-relaxed no-scrollbar">
+            <!-- คู่มือการเชื่อมตั้งค่า Google Sheet เป็นคลาวด์รับ-ส่ง-ลบสมบูรณ์แบบ -->
+            <div class="p-6 overflow-y-auto space-y-4 text-sm text-pastel-600 leading-relaxed no-scrollbar">
                 
-                <!-- บล็อกที่ 1: ตั้งค่า Google Sheets (คู่ขนาน) -->
-                <div class="space-y-3">
-                    <h4 class="font-extrabold text-pastel-950 text-base">🟢 ส่วนที่ 1: การซิงค์ Google Sheets (คู่ขนาน)</h4>
-                    <div class="space-y-1.5">
-                        <label class="block text-xs font-extrabold text-pastel-900 uppercase" for="gasUrl">Google Apps Script Web App URL</label>
-                        <input type="url" id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-4 py-3 rounded-xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-semibold bg-pastel-50/30 text-pastel-900 text-xs">
-                    </div>
-
-                    <div class="flex space-x-2">
-                        <button id="btnSaveGas" class="flex-1 bg-pastel-500 hover:bg-pastel-600 text-white font-extrabold py-3 rounded-xl transition shadow-sm text-xs">
-                            เชื่อมต่อข้อมูล Google Sheet
-                        </button>
-                        <button id="btnDisconnectGas" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-3 rounded-xl transition font-extrabold text-xs hidden">
-                            ตัดการเชื่อมโยง Sheets
-                        </button>
-                    </div>
+                <div class="space-y-2">
+                    <label class="block text-sm font-extrabold text-pastel-900 uppercase" for="gasUrl">Google Apps Script Web App URL</label>
+                    <input type="url" id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-4 py-3 rounded-xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-semibold bg-pastel-50/30 text-pastel-900 text-xs">
                 </div>
 
-                <!-- บล็อกที่ 2 (อัปเกรดใหม่): ตั้งค่า Firebase Config ส่วนตัว สำหรับซิงค์สดนอกแพลตฟอร์ม -->
-                <div class="border-t-2 border-pastel-50 pt-5 space-y-3">
-                    <h4 class="font-extrabold text-pastel-950 text-base">🔥 ส่วนที่ 2: ตั้งค่า Firebase สำหรับซิงค์สดข้ามเครื่อง</h4>
-                    <p class="text-xs text-pastel-500 leading-normal">หากต้องการเปิดลิงก์นี้บนโทรศัพท์หลาย ๆ เครื่องพร้อมกันนอกแพลตฟอร์ม ให้สมัคร Firebase (ฟรี) แล้วก๊อปปี้รหัสการตั้งค่า (Firebase Web SDK Config) รูปแบบปีกกา { ... } มาวางที่นี่ครับ</p>
-                    
-                    <div class="space-y-2">
-                        <textarea id="firebaseConfigInput" rows="5" placeholder='{&#10;  "apiKey": "...",&#10;  "authDomain": "...",&#10;  "projectId": "...",&#10;  "storageBucket": "...",&#10;  "messagingSenderId": "...",&#10;  "appId": "..."&#10;}' class="w-full p-3 text-xs font-mono border-2 border-pastel-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-pastel-300 bg-pastel-50/10 text-pastel-900 placeholder-pastel-300"></textarea>
-                    </div>
-
-                    <button id="btnSaveFirebase" class="w-full bg-pastel-900 hover:bg-slate-800 text-white font-extrabold py-3.5 rounded-xl transition text-xs shadow">
-                        💾 บันทึกและเริ่มใช้เซิร์ฟเวอร์คลาวด์ส่วนตัว
+                <div class="flex space-x-2">
+                    <button id="btnSaveGas" class="flex-1 bg-pastel-500 hover:bg-pastel-600 text-white font-extrabold py-3.5 rounded-xl transition shadow-sm">
+                        เริ่มเชื่อมต่อกับ Google Sheet 🟢
+                    </button>
+                    <button id="btnDisconnectGas" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-3.5 rounded-xl transition font-extrabold hidden">
+                        ตัดการเชื่อมต่อ
                     </button>
                 </div>
 
                 <div id="syncStatus" class="flex items-center space-x-2 p-3 bg-pastel-50 rounded-xl text-pastel-900 text-xs">
-                    <span class="w-2.5 h-2.5 rounded-full bg-slate-400 block"></span>
-                    <span class="font-bold">ตรวจสอบฐานข้อมูล...</span>
+                    <span id="syncPulse" class="w-2.5 h-2.5 rounded-full bg-slate-400 block"></span>
+                    <span id="syncStatusText" class="font-bold">สถานะของระบบ: จัดเก็บแบบส่วนตัวในเครื่องนี้ (ออฟไลน์)</span>
                 </div>
 
-                <!-- คู่มือ Apps Script -->
-                <div class="border-t border-pastel-100 pt-4 space-y-2 text-xs">
-                    <p class="font-extrabold text-pastel-900">💡 รหัสสคริปต์ Google Sheets สำหรับนำไปวางใน Apps Script:</p>
+                <div class="border-t border-pastel-100 pt-4 space-y-3">
+                    <p class="font-extrabold text-pastel-900 text-base">💡 วิธีติดตั้งให้ลิงก์กันหมดทุกเครื่อง (ฟรีใน 5 นาที):</p>
+                    <ol class="list-decimal list-inside space-y-2 text-xs text-pastel-600">
+                        <li>เปิด <span class="font-bold text-pastel-900">Google Sheets ใหม่</span> แล้วพิมพ์หัวตารางแถวที่ 1 คอลัมน์ A ถึง G ตามนี้เป๊ะ ๆ:<br>
+                            <span class="inline-block bg-slate-100 border border-slate-200 font-mono px-2 py-0.5 rounded text-rose-600 font-bold mt-1 select-all">id | name | category | lot | quantity | expiryDate | addedAt</span>
+                        </li>
+                        <li>กดไปที่เมนู <span class="font-bold">ส่วนขยาย (Extensions) > Apps Script</span></li>
+                        <li>ลบโค้ดเริ่มต้นออกให้เกลี้ยง แล้วนำโค้ดด้านล่างนี้ไปวางแทน:</li>
+                    </ol>
+
                     <div class="relative">
-                        <pre class="bg-slate-900 text-emerald-400 p-3 rounded-xl font-mono text-[9px] overflow-x-auto max-h-[120px] leading-normal">
+                        <pre class="bg-slate-900 text-emerald-400 p-3 rounded-xl font-mono text-[9px] overflow-x-auto max-h-[150px] leading-normal">
 function doGet(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var data = sheet.getDataRange().getValues();
@@ -332,10 +313,12 @@ function doGet(e) {
   var result = [];
   for (var i = 1; i < data.length; i++) {
     var row = {};
+    var hasData = false;
     for (var j = 0; j < headers.length; j++) {
       row[headers[j]] = data[i][j];
+      if (data[i][j] !== "") hasData = true;
     }
-    result.push(row);
+    if (hasData) result.push(row);
   }
   return ContentService.createTextOutput(JSON.stringify(result))
     .setMimeType(ContentService.MimeType.JSON)
@@ -346,27 +329,59 @@ function doPost(e) {
   try {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var param = JSON.parse(e.postData.contents);
-    sheet.appendRow([
-      param.id,
-      param.name,
-      param.category || '',
-      param.lot || '',
-      param.quantity,
-      param.expiryDate,
-      new Date().toLocaleString('th-TH')
-    ]);
-    return ContentService.createTextOutput(JSON.stringify({status: "success"}))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeader("Access-Control-Allow-Origin", "*");
+    
+    if (param.action === "add") {
+      sheet.appendRow([
+        param.id,
+        param.name,
+        param.category || '',
+        param.lot || '',
+        param.quantity || 1,
+        param.expiryDate,
+        new Date().toLocaleString('th-TH')
+      ]);
+      return ContentService.createTextOutput(JSON.stringify({status: "success"}))
+        .setMimeType(ContentService.MimeType.JSON)
+        .setHeader("Access-Control-Allow-Origin", "*");
+    } 
+    
+    else if (param.action === "delete") {
+      var data = sheet.getDataRange().getValues();
+      var idColumnIndex = 0; // คอลัมน์ A คือ ID
+      var rowDeleted = false;
+      
+      for (var i = data.length - 1; i >= 1; i--) {
+        if (data[i][idColumnIndex] == param.id) {
+          sheet.deleteRow(i + 1);
+          rowDeleted = true;
+        }
+      }
+      
+      if (rowDeleted) {
+        return ContentService.createTextOutput(JSON.stringify({status: "success"}))
+          .setMimeType(ContentService.MimeType.JSON)
+          .setHeader("Access-Control-Allow-Origin", "*");
+      } else {
+        return ContentService.createTextOutput(JSON.stringify({status: "error", message: "ไม่พบสินค้า"}))
+          .setMimeType(ContentService.MimeType.JSON)
+          .setHeader("Access-Control-Allow-Origin", "*");
+      }
+    }
   } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({status: "error"}))
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.message}))
       .setMimeType(ContentService.MimeType.JSON)
       .setHeader("Access-Control-Allow-Origin", "*");
   }
 }
                         </pre>
-                        <button id="btnCopyScriptCode" class="absolute top-2 right-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] py-1 px-2.5 rounded-lg border border-slate-700">คัดลอกโค้ด</button>
+                        <button id="btnCopyScriptCode" class="absolute top-2 right-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] py-1 px-2.5 rounded-lg border border-slate-700 font-bold">คัดลอกโค้ดสคริปต์ 📋</button>
                     </div>
+                    <p class="text-[11px] text-pastel-500 leading-normal">
+                        4. กดปุ่ม <span class="font-bold text-pastel-900">การทำให้ใช้งานได้ (Deploy) > การทำให้ใช้งานได้ใหม่ (New Deployment)</span><br>
+                        - เลือกประเภทเป็น <span class="bg-pastel-100 text-pastel-900 px-1.5 py-0.5 rounded font-bold">แอปพลิเคชันเว็บ (Web App)</span><br>
+                        - ตั้งค่าผู้ที่มีสิทธิ์เข้าถึงเป็น <span class="bg-rose-100 text-rose-900 px-1.5 py-0.5 rounded font-bold">ทุกคน (Anyone)</span><br>
+                        - กดปุ่ม "ทำให้ใช้งานได้" จากนั้นอนุญาตสิทธิ์ แล้วนำ URL ที่ได้มาแปะในระบบนี้ได้เลยครับ!
+                    </p>
                 </div>
             </div>
             
@@ -382,17 +397,9 @@ function doPost(e) {
         <span id="toastText" class="text-sm font-bold">แจ้งข้อความเตือนให้รับรู้</span>
     </div>
 
-    <!-- ระบบ JavaScript ประมวลผลและโมดูลเชื่อมข้อมูลคลาวด์ Google Firebase -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // ตัวแปรเอกลักษณ์ระบบ
+    <!-- ระบบ JavaScript ประมวลผลและโมดูลเชื่อมข้อมูลคลาวด์ Google Sheets -->
+    <script>
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'senior-expiry-thanaphat-app';
-        let db = null;
-        let auth = null;
-        let currentUser = null;
 
         // สถานะข้อมูล
         let products = [];
@@ -401,6 +408,32 @@ function doPost(e) {
         let isVoiceRecording = false;
         let voiceRecognition = null;
         let expiryPieChart = null;
+        let syncIntervalId = null; // ตัวแปรเก็บเวลาจับดึงข้อมูล Auto-Refresh
+
+        // ฐานข้อมูลตัวเลือกของสินค้ายอดนิยมแนะนำในร้านค้า
+        const presetSuggestions = [
+            { name: "นมจืดเมจิ (Meiji)" },
+            { name: "นมเปรี้ยวดัชมิลล์รสสตรอว์เบอร์รี่" },
+            { name: "โยเกิร์ตดัชชี่ รสธรรมชาติ" },
+            { name: "เนยเค็มออร์คิด (Orchid)" },
+            { name: "ขนมปังแผ่นฟาร์มเฮ้าส์" },
+            { name: "เค้กกล้วยหอมทองเลอแปง" },
+            { name: "ครัวซองต์เนยสดอบชีสแผ่น" },
+            { name: "อกไก่สด CP" },
+            { name: "เนื้อหมูสับอนามัยเบทาโกร" },
+            { name: "ไข่ไก่สด 10 ฟองเบอร์ 2" },
+            { name: "เต้าหู้ไข่หลอดตรานางพยาบาล" },
+            { name: "ไส้กรอกรมควันหนังกรอบ CP" },
+            { name: "แฮมแผ่นสไลด์แซนด์วิช CP" },
+            { name: "ลูกชิ้นปลาต้มสุกเยาวราช" },
+            { name: "ปลากระป๋องสามแม่ครัว" },
+            { name: "ผักกาดขาวพร้อมต้มล้างสะอาด" },
+            { name: "มะเขือเทศเชอร์รี่ล้างสะอาด" },
+            { name: "แอปเปิ้ลฟูจินำเข้าหวานฉ่ำ" },
+            { name: "ยาลดไข้ ซาร่าพาราเซตามอล" },
+            { name: "ยาแก้ไอน้ำดำตราเสือดาว" },
+            { name: "วิตามินซีแบลคมอร์ส 1000 มก." }
+        ];
 
         // อ้างอิง HTML Components
         const productForm = document.getElementById('productForm');
@@ -428,9 +461,8 @@ function doPost(e) {
         const btnSaveGas = document.getElementById('btnSaveGas');
         const btnDisconnectGas = document.getElementById('btnDisconnectGas');
         const syncStatus = document.getElementById('syncStatus');
-
-        const firebaseConfigInput = document.getElementById('firebaseConfigInput');
-        const btnSaveFirebase = document.getElementById('btnSaveFirebase');
+        const syncStatusText = document.getElementById('syncStatusText');
+        const syncPulse = document.getElementById('syncPulse');
 
         // เริ่มโหลดองค์ประกอบระบบ
         window.addEventListener('DOMContentLoaded', () => {
@@ -440,55 +472,24 @@ function doPost(e) {
                 gasUrl = savedUrl;
                 gasUrlInput.value = savedUrl;
                 updateGoogleSheetUI(true);
+                fetchDataFromGoogleSheet();
+                
+                // ตั้งเวลา Auto-Refresh ดึงข้อมูลใหม่ทุก ๆ 10 วินาทีเพื่อความสดใหม่ของทุกเครื่อง
+                startAutoSync();
             } else {
                 updateGoogleSheetUI(false);
+                loadProductsLocally();
             }
-
-            // เริ่มต้นการเชื่อมโยงเรียลไทม์ผ่าน Firebase Auth & Firestore
-            setupRealtimeSync();
 
             // เรียกใช้คำแนะนำและการรับเสียง
             setupAutocompleteSuggestions();
             initSpeechRecognitionSystem();
         });
 
-        // แสดงค่า Firebase Config เดิมใน Input (ถ้าเคยกรอก)
-        const savedFirebase = localStorage.getItem(`${appId}_customFirebaseConfig`);
-        if (savedFirebase && firebaseConfigInput) {
-            firebaseConfigInput.value = savedFirebase;
-        }
-
-        // กดปุ่มเพื่อบันทึกและเชื่อม Firebase ส่วนตัว
-        if (btnSaveFirebase) {
-            btnSaveFirebase.addEventListener('click', () => {
-                const configText = firebaseConfigInput.value.trim();
-                if (!configText) {
-                    localStorage.removeItem(`${appId}_customFirebaseConfig`);
-                    showToastNotification("🗑️ ลบข้อมูลคลาวด์ส่วนตัวแล้ว ระบบจะสลับไปทำงานแบบออฟไลน์", "info");
-                    setTimeout(() => location.reload(), 1200);
-                    return;
-                }
-
-                try {
-                    JSON.parse(configText); // ตรวจสอบรูปแบบ JSON
-                    localStorage.setItem(`${appId}_customFirebaseConfig`, configText);
-                    showToastNotification("💾 บันทึกค่าเซิร์ฟเวอร์เสร็จสิ้น! กำลังเชื่อมต่อใหม่...", "success");
-                    setTimeout(() => location.reload(), 1200);
-                } catch (e) {
-                    showToastNotification("❌ รูปแบบไม่ถูกต้อง! โปรดก๊อปปี้ข้อมูลที่มีปีกกา { } มาวางให้ครบถ้วนนะครับ", "error");
-                }
-            });
-        }
-
-        // เปิด/ปิด Modal บันทึกตั้งค่า Google Sheet
-        btnOpenConfig.addEventListener('click', () => { modalConfig.classList.remove('hidden'); });
-        btnCloseConfig.addEventListener('click', () => { modalConfig.classList.add('hidden'); });
-        btnCloseConfigPrimary.addEventListener('click', () => { modalConfig.classList.add('hidden'); });
-
-        // คัดลอกรหัสสคริปต์
-        const copyBtn = document.getElementById('btnCopyScriptCode');
-        if (copyBtn) {
-            copyBtn.addEventListener('click', () => {
+        // ฟังก์ชันคัดลอกรหัสสคริปต์ลงคลิปบอร์ด
+        const copyScriptBtn = document.getElementById('btnCopyScriptCode');
+        if (copyScriptBtn) {
+            copyScriptBtn.addEventListener('click', () => {
                 const pre = document.querySelector('#modalConfig pre');
                 const textarea = document.createElement('textarea');
                 textarea.value = pre.innerText;
@@ -496,7 +497,7 @@ function doPost(e) {
                 textarea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
-                showToastNotification("📋 คัดลอกรหัสสคริปต์ Google Sheets แล้ว!", "success");
+                showToastNotification("📋 คัดลอกรหัสสคริปต์เรียบร้อยแล้วครับ", "success");
             });
         }
 
@@ -515,7 +516,9 @@ function doPost(e) {
             gasUrl = val;
             localStorage.setItem(`${appId}_gasUrl`, gasUrl);
             updateGoogleSheetUI(true);
-            showToastNotification("💾 บันทึกที่อยู่ Google Sheet แล้ว!", "success");
+            showToastNotification("💾 เชื่อมโยง Google Sheet สำเร็จแล้ว!", "success");
+            fetchDataFromGoogleSheet();
+            startAutoSync();
         });
 
         // ยกเลิก Google Sheets
@@ -524,133 +527,27 @@ function doPost(e) {
             gasUrl = '';
             gasUrlInput.value = '';
             updateGoogleSheetUI(false);
-            showToastNotification("🔌 ตัดการส่งข้อมูลเข้าสเปรดชีตแล้ว", "warning");
+            stopAutoSync();
+            loadProductsLocally();
+            showToastNotification("🔌 ตัดการเชื่อมโยงระบบคลาวด์แล้ว", "warning");
         });
 
-        // ฟังก์ชันเริ่มเชื่อมต่อคลาวด์แบบเรียลไทม์ (RULE 3 - Auth Before Queries)
-        const setupRealtimeSync = async () => {
-            const cloudPulse = document.getElementById('cloudStatusPulse');
-            const cloudText = document.getElementById('cloudStatusText');
-            const cloudBadge = document.getElementById('cloudStatusBadge');
+        // เริ่มตั้งเวลาดึงข้อมูลเรียลไทม์ Auto-Refresh ทุกๆ 10 วินาที
+        function startAutoSync() {
+            stopAutoSync(); // ล้างของเก่าก่อน
+            syncIntervalId = setInterval(() => {
+                fetchDataFromGoogleSheet(true); // ดึงข้อมูลเบื้องหลังแบบเงียบ ๆ
+            }, 10000); 
+        }
 
-            let firebaseConfig = null;
-
-            // 1. ลองตรวจดึง Firebase ตั้งค่าของแพลตฟอร์มเป็นลำดับแรก
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                firebaseConfig = JSON.parse(__firebase_config);
-            } else {
-                // 2. ถ้าไม่มี (รันนิ่งนอกคลาวด์) ลองดึงจากที่กรอกไว้ในเครื่อง
-                const customFirebase = localStorage.getItem(`${appId}_customFirebaseConfig`);
-                if (customFirebase) {
-                    try {
-                        firebaseConfig = JSON.parse(customFirebase);
-                    } catch(e) {
-                        console.error("Custom Firebase parsing failed:", e);
-                    }
-                }
+        function stopAutoSync() {
+            if (syncIntervalId) {
+                clearInterval(syncIntervalId);
+                syncIntervalId = null;
             }
+        }
 
-            // ถ้าไม่มี Firebase Config เลยสักอัน ให้ถอยกลับไปรัน Local Storage
-            if (!firebaseConfig) {
-                console.log("Firebase configuration not found. Running on offline fallback mode.");
-                if (cloudPulse) cloudPulse.className = "w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5";
-                if (cloudText) cloudText.textContent = "โหมดบันทึกส่วนตัวในเครื่องนี้";
-                if (cloudBadge) cloudBadge.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200";
-                if (syncStatus) {
-                    syncStatus.className = "flex items-center space-x-2 p-3 bg-amber-50 rounded-xl text-amber-900 text-xs";
-                    syncStatus.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-amber-500 block"></span><span class="font-bold">สถานะระบบ: รันนิ่งออฟไลน์ (Local Storage) ข้อมูลจะไม่ลิงก์ข้ามเครื่อง</span>`;
-                }
-
-                loadProductsLocally();
-                return;
-            }
-
-            try {
-                // เริ่มระบบ Firebase
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-
-                // ดำเนินการล็อกอินแบบไร้ระบุตัวตน (RULE 3)
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (err) {
-                console.error("Auth Exception Error:", err);
-                showToastNotification("⚠️ สัญญาณขัดข้อง กำลังใช้หน่วยความจำในเครื่องสำรอง", "warning");
-                loadProductsLocally();
-                return;
-            }
-
-            // ฟังความเปลี่ยนแปลงของระบบตรวจสิทธิ์
-            onAuthStateChanged(auth, (user) => {
-                currentUser = user;
-                if (user) {
-                    if (cloudPulse) {
-                        cloudPulse.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse inline-block mr-1.5";
-                    }
-                    if (cloudText) {
-                        cloudText.textContent = "ซิงค์สดทุกเครื่องแล้ว 🟢";
-                    }
-                    if (cloudBadge) {
-                        cloudBadge.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200";
-                    }
-                    if (syncStatus) {
-                        syncStatus.className = "flex items-center space-x-2 p-3 bg-emerald-50 rounded-xl text-emerald-900 text-xs";
-                        syncStatus.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse block"></span><span class="font-bold">สถานะระบบ: เชื่อมต่อคลาวด์สดพร้อมกันทุกอุปกรณ์แล้ว!</span>`;
-                    }
-
-                    // แสดงสัญลักษณ์ User ID เต็มเพื่อระบบ Multi-user
-                    const userIdDisplay = document.getElementById('userIdDisplay');
-                    if (userIdDisplay) {
-                        userIdDisplay.textContent = user.uid;
-                    }
-
-                    // เริ่มดาวน์โหลดข้อมูลสดจากคลาวด์แบบเรียลไทม์
-                    startListeningToFirestore();
-                } else {
-                    if (cloudPulse) cloudPulse.className = "w-2 h-2 rounded-full bg-slate-400 inline-block mr-1.5";
-                    if (cloudText) cloudText.textContent = "ไม่ได้เชื่อมต่อระบบคลาวด์";
-                    loadProductsLocally();
-                }
-            });
-        };
-
-        // เริ่มรับข้อมูลเปลี่ยนแปลงสดจากคลาวด์ (Firestore Real-time Listener)
-        const startListeningToFirestore = () => {
-            if (!db || !currentUser) return;
-
-            // RULE 1: artifacts/{appId}/public/data/products
-            const productsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'products');
-
-            // RULE 2: คิวรี่เรียบง่าย ไม่ใช้เงื่อนไขซับซ้อน ดึงข้อมูลทั้งหมดแล้วแยกกรอง/เรียงลำดับในฝั่ง Javascript แทน
-            onSnapshot(productsCollection, (snapshot) => {
-                products = [];
-                snapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    products.push({
-                        id: docSnap.id,
-                        name: data.name || '',
-                        lot: data.lot || '',
-                        quantity: data.quantity || 1,
-                        expiryDate: data.expiryDate || ''
-                    });
-                });
-
-                // เรียงลำดับตามวันที่หมดอายุจากน้อยไปหามากในหน่วยความจำเครื่อง
-                products.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
-
-                renderProducts();
-            }, (error) => {
-                console.error("Firestore onSnapshot error:", error);
-                showToastNotification("⚠️ เชื่อมต่อข้อมูลเวลาจริงล้มเหลว กำลังใช้หน่วยความจำเครื่องแทน", "warning");
-                loadProductsLocally();
-            });
-        };
-
-        // โหลดข้อมูลแบบ Local Storage ชั่วคราว (Fallback)
+        // ดึงข้อมูลสินค้าของคลังที่จำลองในเครื่อง (กรณีออฟไลน์)
         function loadProductsLocally() {
             const stored = localStorage.getItem(`${appId}_products`);
             if (stored) {
@@ -677,34 +574,82 @@ function doPost(e) {
 
         // ปรับปรุงรายงานสถานะ Google Sheets
         function updateGoogleSheetUI(isConnected) {
+            const cloudBadge = document.getElementById('cloudStatusBadge');
+            const cloudPulse = document.getElementById('cloudStatusPulse');
+            const cloudText = document.getElementById('cloudStatusText');
+
             if (isConnected) {
                 btnDisconnectGas.classList.remove('hidden');
-                syncStatus.className = "flex items-center space-x-2.5 p-4 bg-pastel-100 rounded-2xl text-pastel-900 border border-pastel-200";
-                syncStatus.innerHTML = `
-                    <span class="w-3.5 h-3.5 rounded-full bg-pastel-500 animate-pulse block"></span>
-                    <span class="text-sm font-extrabold">สถานะ: ส่งข้อมูลคู่ขนานไป Google Sheets แล้ว</span>
-                `;
+                
+                if (cloudBadge) cloudBadge.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200";
+                if (cloudPulse) cloudPulse.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-1.5 inline-block";
+                if (cloudText) cloudText.textContent = "เชื่อมคลาวด์ Google Sheet สำเร็จแล้ว 🟢";
+
+                if (syncPulse) syncPulse.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse block";
+                if (syncStatusText) syncStatusText.textContent = "สถานะระบบ: เชื่อมข้อมูลคลาวด์พร้อมกันทุกเครื่องเรียบร้อยแล้ว!";
             } else {
                 btnDisconnectGas.classList.add('hidden');
+
+                if (cloudBadge) cloudBadge.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200";
+                if (cloudPulse) cloudPulse.className = "w-2 h-2 rounded-full bg-amber-500 mr-1.5 inline-block";
+                if (cloudText) cloudText.textContent = "โหมดบันทึกส่วนตัวในเครื่องนี้ (ออฟไลน์)";
+
+                if (syncPulse) syncPulse.className = "w-2.5 h-2.5 rounded-full bg-slate-400 block";
+                if (syncStatusText) syncStatusText.textContent = "สถานะของระบบ: จัดเก็บแบบส่วนตัวในเครื่องนี้ (ออฟไลน์)";
             }
         }
 
-        // ส่งข้อมูลเข้าสเปรดชีต (POST)
-        async function postProductToGoogleSheet(product) {
+        // ดึงข้อมูลสินค้าจาก Google Sheets (GET)
+        async function fetchDataFromGoogleSheet(isBackground = false) {
             if (!gasUrl) return;
+            if (!isBackground) {
+                showToastNotification("🔄 กำลังเชื่อมคลาวด์ ดึงข้อมูลล่าสุดจาก Google Sheets...", "info");
+            }
+
             try {
-                await fetch(gasUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(product)
-                });
+                const response = await fetch(gasUrl);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (Array.isArray(data)) {
+                        // ปรับแต่งข้อมูลให้สมบูรณ์
+                        products = data.map(item => ({
+                            id: item.id || 'PROD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+                            name: item.name || '',
+                            lot: item.lot || '',
+                            quantity: Number(item.quantity) || 1,
+                            expiryDate: item.expiryDate ? formatToStandardDate(item.expiryDate) : ''
+                        })).filter(item => item.name); // กรองแถวเปล่าที่อาจปนมาออก
+
+                        // บันทึกเก็บไว้ในเครื่องกันหลุดด้วย
+                        saveProductsLocally();
+                        renderProducts();
+
+                        if (!isBackground) {
+                            showToastNotification("✅ อัปเดตข้อมูลตรงกันทุกเครื่องสำเร็จแล้ว!", "success");
+                        }
+                    }
+                }
             } catch(e) {
-                console.error("Google Sheets error:", e);
+                console.error("Fetch Google Sheets Error:", e);
+                if (!isBackground) {
+                    showToastNotification("⚠️ สัญญาณขัดข้อง กำลังใช้หน่วยความจำเครื่องแทน", "warning");
+                    loadProductsLocally();
+                }
             }
         }
 
-        // ระบบแปลคำพูดจากไมโครโฟนภาษาไทย (Web Speech API)
+        // แปลงฟอร์แมตข้อมูลวันที่เป็น YYYY-MM-DD
+        function formatToStandardDate(rawDate) {
+            try {
+                const date = new Date(rawDate);
+                if (isNaN(date.getTime())) return '';
+                return date.toISOString().split('T')[0];
+            } catch(e) {
+                return '';
+            }
+        }
+
+        // แปลงเสียงพูดภาษาไทยเป็นอักษรพิมพ์ (Speech to Text)
         function initSpeechRecognitionSystem() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -765,7 +710,7 @@ function doPost(e) {
             micText.textContent = "แตะเพื่อพูดชื่อสินค้า";
         }
 
-        // ฟังก์ชันระบบกรอกสินค้าแนะนำใบโต (Autocomplete Suggestions)
+        // ระบบจับคู่พิมพ์ค้นหา แนะนำสินค้าอัจฉริยะ (Autocomplete Suggestions)
         function setupAutocompleteSuggestions() {
             productName.addEventListener('input', () => {
                 const val = productName.value.trim().toLowerCase();
@@ -774,7 +719,6 @@ function doPost(e) {
                     return;
                 }
 
-                // คัดกรองของแนะนำที่ตรงกับอักษรภาษาไทย
                 const matched = presetSuggestions.filter(item => 
                     item.name.toLowerCase().includes(val)
                 );
@@ -787,7 +731,6 @@ function doPost(e) {
                 renderSuggestions(matched);
             });
 
-            // ตรวจจับกดคลิกภายนอกเพื่อปิดกล่องแนะนำ
             document.addEventListener('click', (e) => {
                 if (!productName.contains(e.target) && !suggestionBox.contains(e.target) && !btnVoice.contains(e.target)) {
                     suggestionBox.classList.add('hidden');
@@ -795,7 +738,6 @@ function doPost(e) {
             });
         }
 
-        // แสดงสัญลักษณ์ปุ่มแนะนำใบโต แตะสัมผัสสะดวกที่สุด
         function renderSuggestions(items) {
             suggestionBox.innerHTML = '';
             suggestionBox.classList.remove('hidden');
@@ -807,7 +749,6 @@ function doPost(e) {
                     <span class="font-extrabold text-lg">${escapeHtmlString(item.name)}</span>
                 `;
 
-                // เมื่อทำการแตะตัวเลือกแนะนำ
                 buttonDiv.addEventListener('click', () => {
                     productName.value = item.name;
                     suggestionBox.classList.add('hidden');
@@ -831,7 +772,7 @@ function doPost(e) {
             return Math.ceil(diff / (1000 * 60 * 60 * 24));
         }
 
-        // จัดหมวดคลังคัดกรอง All / Expired / Expiring (7 วัน) / Expiring_15 (15 วัน) / Safe (>15 วัน)
+        // คัดกรองตัวเลือกด่วนแสดงสินค้า
         function setFilter(type) {
             currentFilter = type;
             const filterArray = ['all', 'expired', 'expiring', 'expiring_15', 'safe'];
@@ -840,16 +781,16 @@ function doPost(e) {
                 const btn = document.getElementById(`filter-${f}`);
                 if (!btn) return;
                 if (f === type) {
-                    btn.className = "flex-1 xl:flex-none text-xs px-4 py-3 rounded-xl font-extrabold bg-white text-pastel-900 shadow-sm transition border border-pastel-200";
+                    btn.className = "flex-1 sm:flex-none text-xs px-4 py-3 rounded-xl font-extrabold bg-white text-pastel-900 shadow-sm transition border border-pastel-200";
                 } else {
-                    btn.className = "flex-1 xl:flex-none text-xs px-4 py-3 rounded-xl font-extrabold text-pastel-500 hover:bg-white/50 transition";
+                    btn.className = "flex-1 sm:flex-none text-xs px-4 py-3 rounded-xl font-extrabold text-pastel-500 hover:bg-white/50 transition";
                 }
             });
 
             renderProducts();
         }
 
-        // ฟังก์ชันสลับตัวกรองสถานะ และเลื่อนหน้าจอลงไปดูรายการทันที
+        // สลับตัวกรองสถานะ และเลื่อนหน้าจอลงไปดูรายการทันที
         function setFilterAndScroll(type) {
             setFilter(type);
             const section = document.getElementById('products-section');
@@ -866,18 +807,16 @@ function doPost(e) {
             showToastNotification(`🔎 แสดงเฉพาะ: ${label}`, "success");
         }
 
-        // ฟังก์ชันอัปเดตหรือสร้างแผนภูมิวงกลม (Pie Chart) แบบมินิมอลพาสเทล
+        // สร้างหรืออัปเดตแผนภูมิวงกลม (Pie Chart) แบบมินิมอลพาสเทล
         function updatePieChart(expired, expiring, expiring15, safe) {
             const ctx = document.getElementById('expiryPieChart').getContext('2d');
             const chartData = [expired, expiring, expiring15, safe];
             const total = chartData.reduce((a, b) => a + b, 0);
 
-            // หากเคยสร้างแผนภูมิไว้แล้ว ให้ทำการอัปเดตข้อมูลเพื่อให้แสดงผลได้ลื่นไหล
             if (expiryPieChart) {
                 expiryPieChart.data.datasets[0].data = chartData;
                 expiryPieChart.update();
             } else {
-                // เริ่มต้นสร้างแผนภูมิวงกลมตัวใหม่พร้อมสีและตัวอักษรขนาดใหญ่อ่านง่าย
                 expiryPieChart = new Chart(ctx, {
                     type: 'pie',
                     data: {
@@ -911,7 +850,7 @@ function doPost(e) {
                                         size: 14,
                                         weight: 'bold'
                                     },
-                                    color: '#143d28', // สีข้อความ pastel-900
+                                    color: '#143d28',
                                     padding: 15
                                 }
                             },
@@ -932,21 +871,22 @@ function doPost(e) {
             }
         }
 
-        // แสดงผลรายการแบบการ์ดขนาดใหญ่ (Aged-Friendly List Card Render)
+        // แสดงผลรายการแบบการ์ดขนาดใหญ่ (Aged-Friendly List Card)
         function renderProducts() {
             productCardsContainer.innerHTML = '';
             const search = document.getElementById('searchTerm').value.toLowerCase().trim();
 
             let filteredList = products;
 
-            // ตรวจกรองชื่อค้นหา
+            // ค้นหาข้อความ
             if (search) {
                 filteredList = filteredList.filter(item => 
-                    item.name.toLowerCase().includes(search)
+                    item.name.toLowerCase().includes(search) ||
+                    (item.lot && item.lot.toLowerCase().includes(search))
                 );
             }
 
-            // ตรวจกรองตามประเภทป้ายสถานะ
+            // คัดกรองสถานะ
             if (currentFilter === 'expiring') {
                 filteredList = filteredList.filter(item => {
                     const days = calculateDaysRemaining(item.expiryDate);
@@ -955,7 +895,7 @@ function doPost(e) {
             } else if (currentFilter === 'expiring_15') {
                 filteredList = filteredList.filter(item => {
                     const days = calculateDaysRemaining(item.expiryDate);
-                    return days > 7 && days <= 15; // แสดงสินค้าเฉพาะ เฝ้าระวัง 8-15 วันพอดีตามหัวข้อ
+                    return days > 7 && days <= 15;
                 });
             } else if (currentFilter === 'expired') {
                 filteredList = filteredList.filter(item => {
@@ -965,11 +905,11 @@ function doPost(e) {
             } else if (currentFilter === 'safe') {
                 filteredList = filteredList.filter(item => {
                     const days = calculateDaysRemaining(item.expiryDate);
-                    return days > 15; // สินค้ายังปลอดภัยอยู่อย่างมั่นใจ (>15 วัน)
+                    return days > 15;
                 });
             }
 
-            // คำนวณยอดหน้า Dashboard & อัปเดตสถิติแผนภูมิรูปวงกลม
+            // อัปเดตสถิติยอด
             updateStatisticsCounter();
 
             if (filteredList.length === 0) {
@@ -1003,7 +943,6 @@ function doPost(e) {
                     containerColorBorder = 'border-pastel-200 bg-pastel-50/20';
                 }
 
-                // สร้างการ์ดใบใหญ่ ตัวอักษรหนาอ่านชัด เพื่ออำนวยความสะดวกสายตาผู้ใช้ทั่วไปและผู้สูงวัย
                 const card = document.createElement('div');
                 card.className = `p-5 rounded-3xl border-2 ${containerColorBorder} flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all duration-150 shadow-sm bg-white`;
                 
@@ -1020,7 +959,6 @@ function doPost(e) {
                             <span class="block text-xs font-bold text-pastel-400">วันหมดอายุ</span>
                             <span class="text-base font-extrabold text-pastel-900">${formatDateThaiString(item.expiryDate)}</span>
                         </div>
-                        <!-- ปุ่มแตะลบแบบใบโต เพื่อให้เล็งแตะได้ง่ายที่สุด -->
                         <button onclick="deleteProductItem('${item.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border-2 border-rose-200 font-extrabold px-5 py-3 rounded-2xl text-sm flex items-center space-x-1 transition-all" title="ลบข้อมูล">
                             <span>🗑️ แตะเพื่อลบ</span>
                         </button>
@@ -1031,20 +969,35 @@ function doPost(e) {
             });
         }
 
-        // ดำเนินการลบสินค้า (ลบเรียลไทม์จากทุกเครื่องทันที)
+        // ลบสินค้า (ลบแถวเรียลไทม์ออกจาก Google Sheets / Local Storage)
         const deleteProductItem = async (id) => {
-            if (db && currentUser) {
+            if (gasUrl) {
+                showToastNotification("🗑️ กำลังส่งคำสั่งลบไปยังคลาวด์ Google Sheets...", "info");
+                
+                // คัดกรองตัวลบออกจากการเรนเดอร์ชั่วคราวก่อนเพื่อความรวดเร็ว (Optimistic UI)
+                products = products.filter(item => item.id !== id);
+                renderProducts();
+
                 try {
-                    // ลบข้อมูลโดยอิง Doc ID บน Firestore (ลบเครื่องนี้ เครื่องอื่นจะหายทันที)
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', id);
-                    await deleteDoc(docRef);
-                    showToastNotification("🗑️ ลบสินค้าออกจากระบบคลาวด์แล้ว ทุกเครื่องลบออกพร้อมกัน", "warning");
-                } catch (e) {
-                    console.error("Delete Error:", e);
-                    showToastNotification("❌ การลบข้อมูลล้มเหลว", "error");
+                    // ส่งคำร้องขอ POST ไปยัง Google Sheets
+                    await fetch(gasUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: "delete", id: id })
+                    });
+                    
+                    showToastNotification("🗑️ ลบสินค้าออกจากคลาวด์และทุกเครื่องเรียบร้อยแล้ว", "warning");
+                    
+                    // ดึงข้อมูลใหม่เพื่อความชัวร์หลังจากส่ง
+                    setTimeout(() => fetchDataFromGoogleSheet(true), 1500);
+                } catch(e) {
+                    console.error("Delete from Google Sheet failed:", e);
+                    showToastNotification("❌ การลบสินค้าบนคลาวด์ขัดข้อง", "error");
+                    fetchDataFromGoogleSheet(true); // ลองดึงใหม่เพื่อคืนค่าเดิม
                 }
             } else {
-                // โหมด Fallback ออฟไลน์
+                // ลบออฟไลน์
                 products = products.filter(item => item.id !== id);
                 saveProductsLocally();
                 renderProducts();
@@ -1052,7 +1005,7 @@ function doPost(e) {
             }
         };
 
-        // เพิ่มบันทึกข้อมูลสินค้าล็อตใหม่ (อัปโหลดขึ้นเรียลไทม์)
+        // เพิ่มบันทึกข้อมูลสินค้า (เขียนขึ้น Google Sheets / Local Storage)
         productForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -1068,38 +1021,49 @@ function doPost(e) {
             const newProductObj = {
                 id: 'PROD-' + Date.now().toString(36).toUpperCase(),
                 name: name,
-                category: '', // ส่งค่าว่าง เพื่อรักษาโครงสร้าง Google Sheets เดิมไม่ให้คอลัมน์คลาดเคลื่อน
+                category: '',
                 lot: lot,      
-                quantity: 1,  // กำหนดจำนวนสินค้าเริ่มต้นเป็น 1 เสมอเนื่องจากตัดช่องกรอกออกแล้ว
+                quantity: 1,
                 expiryDate: expiry
             };
 
-            if (db && currentUser) {
+            if (gasUrl) {
+                showToastNotification("☁️ กำลังบันทึกสินค้าใหม่ขึ้น Google Sheets...", "info");
+                
+                // เขียนเข้าอาร์เรย์เครื่องนี้เพื่อให้แสดงผลทันใจล่วงหน้า
+                products.unshift(newProductObj);
+                renderProducts();
+
                 try {
-                    // อัปโหลดสดไปยังคลาวด์ (RULE 1)
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', newProductObj.id);
-                    await setDoc(docRef, newProductObj);
-                    showToastNotification("✨ บันทึกสินค้าเรียบร้อย ทุกเครื่องเห็นข้อมูลตรงกันทันที", "success");
-                    
-                    // ส่งข้อมูล Google Sheet แบบคู่ขนานถ้าเปิดใช้ไว้
-                    postProductToGoogleSheet(newProductObj);
-                } catch (e) {
-                    console.error("Upload Error:", e);
-                    showToastNotification("❌ อัปโหลดข้อมูลคลาวด์ไม่สำเร็จ", "error");
+                    // ส่งคำสั่งเพิ่มแถวไปยัง Google Sheets
+                    await fetch(gasUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: "add", ...newProductObj })
+                    });
+
+                    showToastNotification("✨ บันทึกสินค้าสำเร็จ และจะซิงค์ไปเครื่องอื่น ๆ ทันที", "success");
+                    productForm.reset();
+
+                    // ดึงข้อมูลใหม่หลังจากส่งสำเร็จ
+                    setTimeout(() => fetchDataFromGoogleSheet(true), 1500);
+                } catch(e) {
+                    console.error("Add Google Sheet error:", e);
+                    showToastNotification("❌ เชื่อมคลาวด์บันทึกไม่สำเร็จ", "error");
+                    fetchDataFromGoogleSheet(true);
                 }
             } else {
-                // โหมด Fallback ออฟไลน์
+                // บันทึกแบบออฟไลน์
                 products.unshift(newProductObj);
                 saveProductsLocally();
                 renderProducts();
                 showToastNotification("💾 บันทึกในเครื่องเป็นข้อมูลสำรองชั่วคราว", "success");
-                postProductToGoogleSheet(newProductObj);
+                productForm.reset();
             }
-
-            productForm.reset();
         });
 
-        // อัปเดตสถิติ Dashboard ทั่วคลังแยกช่วงวันชัดเจน และส่งข้อมูลซิงค์ให้แผนภูมิวงกลม
+        // อัปเดตสถิติ Dashboard แยกช่วงวันชัดเจน
         function updateStatisticsCounter() {
             let expiring = 0;
             let expiring15 = 0;
@@ -1119,13 +1083,11 @@ function doPost(e) {
                 }
             });
 
-            // อัปเดตจำนวนในการทำงานของ UI
             statExpiring.textContent = expiring;
             statExpiring15.textContent = expiring15;
             statExpired.textContent = expired;
             statSafe.textContent = safe;
 
-            // วาดหรืออัปเดตข้อมูลบนแผนภูมิรูปวงกลม
             updatePieChart(expired, expiring, expiring15, safe);
         }
 
@@ -1152,7 +1114,6 @@ function doPost(e) {
                 toast.className = "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center bg-pastel-900 text-white px-6 py-5 rounded-3xl shadow-2xl space-x-3 transition-all duration-300 transform translate-y-0 opacity-100 w-[90%] max-w-md border-2 border-pastel-300 font-extrabold text-lg text-center justify-center";
             }
 
-            // ซ่อนการแจ้งเตือนหลังจากผ่านไป 4 วินาที (เพื่อให้ผู้สูงอายุอ่านทัน)
             setTimeout(() => {
                 toast.className = "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-xl space-x-3 transform translate-y-28 opacity-0 transition-all duration-300 w-[90%] max-w-md";
             }, 4000);
@@ -1169,30 +1130,18 @@ function doPost(e) {
             return `${date.getDate()} ${months[date.getMonth()]} พ.ศ. ${date.getFullYear() + 543}`;
         }
 
-        function formatToStandardDate(rawDate) {
-            try {
-                const date = new Date(rawDate);
-                if (isNaN(date.getTime())) return '';
-                return date.toISOString().split('T')[0];
-            } catch(e) {
-                return '';
-            }
-        }
-
-        // คำนวณวันที่ห่างออกไปเพื่อแสดงเดโม
         function createOffsetDateString(daysOffset) {
             const date = new Date();
             date.setDate(date.getDate() + daysOffset);
             return date.toISOString().split('T')[0];
         }
 
-        // ฟิลเตอร์ป้องกันปัญหาอักขระพิเศษรบกวน HTML
         function escapeHtmlString(text) {
             const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
             return text ? String(text).replace(/[&<>"']/g, m => map[m]) : '';
         }
 
-        // ผูกฟังก์ชันต่าง ๆ เข้ากับ window เพื่อให้ปุ่ม HTML เรียกใช้งานได้โดยตรง
+        // ผูกฟังก์ชันเข้ากับ window เพื่อให้ทำงานได้สมบูรณ์ใน HTML
         window.setFilter = setFilter;
         window.setFilterAndScroll = setFilterAndScroll;
         window.deleteProductItem = deleteProductItem;
