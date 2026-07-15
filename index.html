@@ -77,7 +77,14 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-pastel-900 leading-tight">ร้านธนภรรุ่งเรือง</h1>
-                    <p class="text-sm font-semibold text-pastel-500">ระบบเช็ควันหมดอายุสินค้าในร้าน</p>
+                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1">
+                        <span class="text-sm font-semibold text-pastel-500">ระบบเช็ควันหมดอายุสินค้าในร้าน</span>
+                        <!-- ป้ายแสดงการซิงค์ข้อมูลเรียลไทม์ -->
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200" id="cloudStatusBadge">
+                            <span id="cloudStatusPulse" class="w-2 h-2 rounded-full bg-slate-400 mr-1.5 inline-block"></span>
+                            <span id="cloudStatusText">กำลังเริ่มต้นฐานข้อมูล...</span>
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -89,7 +96,7 @@
     </header>
 
     <!-- พื้นที่แสดงผลหลัก -->
-    <main class="flex-1 max-w-5xl w-full mx-auto p-4 space-y-8 pb-20">
+    <main class="flex-1 max-w-5xl w-full mx-auto p-4 space-y-6 pb-20">
 
         <!-- แถวที่ 1 (บนสุด): กล่องข้อมูลตัวเลขสรุปสถานะสินค้า 4 กล่องสีพาสเทลหลัก ทำหน้าที่เป็นลิงก์กรองข้อมูลอัจฉริยะ (Grid cols 2) -->
         <div class="grid grid-cols-2 gap-6 max-w-5xl mx-auto">
@@ -215,7 +222,7 @@
             <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 border-b-2 border-pastel-50 pb-4 mb-4">
                 <div>
                     <h2 class="text-2xl font-extrabold text-pastel-900">📦 รายการสินค้าสะสมในร้าน</h2>
-                    <p class="text-sm text-pastel-500 font-medium">แตะปุ่มเพื่อกรองตามเงื่อนไข หรือใช้ปุ่มลิงก์ด้านบนสุดเพื่อคัดกรองแบบด่วน</p>
+                    <p class="text-sm text-pastel-500 font-medium">แตะปุ่มเพื่อเลือกกรองดูสินค้าแต่ละสถานะได้เลย</p>
                 </div>
 
                 <!-- ปุ่มตัวเลือกกรองสินค้าอันใหญ่ แตะสะดวกไม่บดบัง ครอบคลุมทุกสัดส่วน -->
@@ -248,6 +255,15 @@
         </div>
 
     </main>
+
+    <!-- พื้นที่แสดงข้อมูลรหัสระบบคลาวด์เพื่อความสอดคล้องตามข้อกำหนดด้านความปลอดภัย -->
+    <footer class="bg-white border-t border-pastel-100 py-6 mt-12">
+        <div class="max-w-5xl mx-auto px-4 text-center text-xs text-pastel-500/80 space-y-1">
+            <p class="font-bold">🏪 ระบบเช็ควันหมดอายุ ร้านธนภรรุ่งเรือง — เรียลไทม์คลาวด์ซิงค์</p>
+            <p>รหัสฐานข้อมูลคลาวด์ประจำเครื่อง: <span id="userIdDisplay" class="font-mono bg-pastel-50 border border-pastel-100 px-2 py-0.5 rounded text-pastel-900 select-all font-bold">กำลังโหลด...</span></p>
+            <p class="text-[11px] text-pastel-400">ทุกเครื่องที่เปิดใช้งานหน้าจอนี้ร่วมกันจะมองเห็น คัดกรอง และลบสินค้าพร้อมกันทันที</p>
+        </div>
+    </footer>
 
     <!-- Modal ตั้งค่าการเชื่อมข้อมูลกับ Google Sheets ของร้านธนภรรุ่งเรือง -->
     <div id="modalConfig" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pastel-900/50 backdrop-blur-sm hidden">
@@ -332,7 +348,7 @@ function doPost(e) {
   }
 }
                         </pre>
-                        <button onclick="copyToClipboardScript()" class="absolute top-2 right-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] py-1 px-2.5 rounded-lg border border-slate-700">คัดลอกโค้ด</button>
+                        <button id="btnCopyScriptCode" class="absolute top-2 right-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] py-1 px-2.5 rounded-lg border border-slate-700">คัดลอกโค้ด</button>
                     </div>
                     <p class="text-[11px] text-pastel-400">วิธีติดตั้ง: สร้าง Google Sheet คอลัมน์แถวที่ 1 ตั้งแต่คอลัมน์ A ถึง G ด้วยหัวตารางต่อไปนี้: <br><strong class="text-pastel-700 font-mono">id | name | category | lot | quantity | expiryDate | addedAt</strong> และนำรหัสสคริปต์ด้านบนไปติดตั้งลงในส่วน Extensions > Apps Script และกดจัดทำเป็น Web App ให้สิทธิ์การเข้าถึงเป็น Everyone (ทุกคน) แล้วนำมาเชื่อมต่อที่กล่องด้านบนครับ</p>
                 </div>
@@ -350,46 +366,64 @@ function doPost(e) {
         <span id="toastText" class="text-sm font-bold">แจ้งข้อความเตือนให้รับรู้</span>
     </div>
 
-    <!-- ระบบ JavaScript ประมวลผล -->
-    <script>
+    <!-- ระบบ JavaScript ประมวลผลและโมดูลเชื่อมข้อมูลคลาวด์ Google Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ตัวแปรเอกลักษณ์ระบบ
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'senior-expiry-thanaphat-app';
+        let db = null;
+        let auth = null;
+        let currentUser = null;
 
-        // ฐานข้อมูลตัวเลือกสินค้าของร้านค้า
-        const presetSuggestions = [
-            { name: "นมจืดเมจิ (Meiji)" },
-            { name: "นมเปรี้ยวดัชมิลล์รสสตรอว์เบอร์รี่" },
-            { name: "โยเกิร์ตดัชชี่ รสธรรมชาติ" },
-            { name: "เนยเค็มออร์คิด (Orchid)" },
-            
-            { name: "ขนมปังแผ่นฟาร์มเฮ้าส์" },
-            { name: "เค้กกล้วยหอมทองเลอแปง" },
-            { name: "ครัวซองต์เนยสดอบชีสแผ่น" },
-
-            { name: "อกไก่สด CP" },
-            { name: "เนื้อหมูสับอนามัยเบทาโกร" },
-            { name: "ไข่ไก่สด 10 ฟองเบอร์ 2" },
-            { name: "เต้าหู้ไข่หลอดตรานางพยาบาล" },
-
-            { name: "ไส้กรอกรมควันหนังกรอบ CP" },
-            { name: "แฮมแผ่นสไลด์แซนด์วิช CP" },
-            { name: "ลูกชิ้นปลาต้มสุกเยาวราช" },
-            { name: "ปลากระป๋องสามแม่ครัว" },
-
-            { name: "ผักกาดขาวพร้อมต้มล้างสะอาด" },
-            { name: "มะเขือเทศเชอร์รี่ล้างสะอาด" },
-            { name: "แอปเปิ้ลฟูจินำเข้าหวานฉ่ำ" },
-
-            { name: "ยาลดไข้ ซาร่าพาราเซตามอล" },
-            { name: "ยาแก้ไอน้ำดำตราเสือดาว" },
-            { name: "วิตามินซีแบลคมอร์ส 1000 มก." }
-        ];
-
+        // สถานะข้อมูล
         let products = [];
         let currentFilter = 'all';
         let gasUrl = '';
         let isVoiceRecording = false;
         let voiceRecognition = null;
-        let expiryPieChart = null; // อ้างอิงตัวแปรเก็บแผนภูมิวงกลม
+        let expiryPieChart = null;
+
+        // ดึง Firebase Config ประจำตัวแวดล้อม
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+
+        // ตรวจสอบและเริ่มต้นการใช้งาน Firebase
+        if (firebaseConfig) {
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+            } catch (e) {
+                console.error("Firebase Init Error:", e);
+            }
+        }
+
+        // ฐานข้อมูลตัวเลือกของสินค้ายอดนิยมแนะนำในร้านค้า
+        const presetSuggestions = [
+            { name: "นมจืดเมจิ (Meiji)" },
+            { name: "นมเปรี้ยวดัชมิลล์รสสตรอว์เบอร์รี่" },
+            { name: "โยเกิร์ตดัชชี่ รสธรรมชาติ" },
+            { name: "เนยเค็มออร์คิด (Orchid)" },
+            { name: "ขนมปังแผ่นฟาร์มเฮ้าส์" },
+            { name: "เค้กกล้วยหอมทองเลอแปง" },
+            { name: "ครัวซองต์เนยสดอบชีสแผ่น" },
+            { name: "อกไก่สด CP" },
+            { name: "เนื้อหมูสับอนามัยเบทาโกร" },
+            { name: "ไข่ไก่สด 10 ฟองเบอร์ 2" },
+            { name: "เต้าหู้ไข่หลอดตรานางพยาบาล" },
+            { name: "ไส้กรอกรมควันหนังกรอบ CP" },
+            { name: "แฮมแผ่นสไลด์แซนด์วิช CP" },
+            { name: "ลูกชิ้นปลาต้มสุกเยาวราช" },
+            { name: "ปลากระป๋องสามแม่ครัว" },
+            { name: "ผักกาดขาวพร้อมต้มล้างสะอาด" },
+            { name: "มะเขือเทศเชอร์รี่ล้างสะอาด" },
+            { name: "แอปเปิ้ลฟูจินำเข้าหวานฉ่ำ" },
+            { name: "ยาลดไข้ ซาร่าพาราเซตามอล" },
+            { name: "ยาแก้ไอน้ำดำตราเสือดาว" },
+            { name: "วิตามินซีแบลคมอร์ส 1000 มก." }
+        ];
 
         // อ้างอิง HTML Components
         const productForm = document.getElementById('productForm');
@@ -418,29 +452,47 @@ function doPost(e) {
         const btnDisconnectGas = document.getElementById('btnDisconnectGas');
         const syncStatus = document.getElementById('syncStatus');
 
-        // โหลดระบบเมื่อหน้าจอเสร็จสมบูรณ์
+        // เริ่มโหลดองค์ประกอบระบบ
         window.addEventListener('DOMContentLoaded', () => {
+            // โหลดสคริปต์ Google Sheet URL (ถ้ามี)
             const savedUrl = localStorage.getItem(`${appId}_gasUrl`);
             if (savedUrl) {
                 gasUrl = savedUrl;
                 gasUrlInput.value = savedUrl;
-                updateSyncUI(true);
-                fetchProductsFromCloud();
+                updateGoogleSheetUI(true);
             } else {
-                loadProductsLocally();
-                updateSyncUI(false);
+                updateGoogleSheetUI(false);
             }
 
+            // เริ่มต้นการเชื่อมโยงเรียลไทม์ผ่าน Firebase Auth & Firestore
+            setupRealtimeSync();
+
+            // เรียกใช้คำแนะนำและการรับเสียง
             setupAutocompleteSuggestions();
             initSpeechRecognitionSystem();
         });
 
-        // เปิด/ปิด Modal บันทึกตั้งค่า
+        // เปิด/ปิด Modal บันทึกตั้งค่า Google Sheet
         btnOpenConfig.addEventListener('click', () => { modalConfig.classList.remove('hidden'); });
         btnCloseConfig.addEventListener('click', () => { modalConfig.classList.add('hidden'); });
         btnCloseConfigPrimary.addEventListener('click', () => { modalConfig.classList.add('hidden'); });
 
-        // บันทึกที่อยู่เชื่อมสเปรดชีต
+        // คัดลอกรหัสสคริปต์
+        const copyBtn = document.getElementById('btnCopyScriptCode');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+                const pre = document.querySelector('#modalConfig pre');
+                const textarea = document.createElement('textarea');
+                textarea.value = pre.innerText;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToastNotification("📋 คัดลอกรหัสสคริปต์ Google Sheets แล้ว!", "success");
+            });
+        }
+
+        // บันทึก Google Sheets URL
         btnSaveGas.addEventListener('click', () => {
             const val = gasUrlInput.value.trim();
             if (!val) {
@@ -448,47 +500,118 @@ function doPost(e) {
                 return;
             }
             if (!val.startsWith('https://script.google.com/')) {
-                showToastNotification("❌ รูปแบบ URL ลิงก์ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง", "error");
+                showToastNotification("❌ รูปแบบ URL ลิงก์ไม่ถูกต้อง", "error");
                 return;
             }
 
             gasUrl = val;
             localStorage.setItem(`${appId}_gasUrl`, gasUrl);
-            updateSyncUI(true);
-            showToastNotification("💾 บันทึกที่อยู่และเชื่อมต่อเสร็จสมบูรณ์!", "success");
-            fetchProductsFromCloud();
+            updateGoogleSheetUI(true);
+            showToastNotification("💾 บันทึกที่อยู่ Google Sheet แล้ว!", "success");
         });
 
-        // ยกเลิกเชื่อมโยงคลาวด์
+        // ยกเลิก Google Sheets
         btnDisconnectGas.addEventListener('click', () => {
             localStorage.removeItem(`${appId}_gasUrl`);
             gasUrl = '';
             gasUrlInput.value = '';
-            updateSyncUI(false);
-            loadProductsLocally();
-            showToastNotification("🔌 ตัดการเชื่อมโยงกับ Google Sheet สำเร็จแล้ว", "warning");
+            updateGoogleSheetUI(false);
+            showToastNotification("🔌 ตัดการส่งข้อมูลเข้าสเปรดชีตแล้ว", "warning");
         });
 
-        // ปรับแต่งการรายงานสัญลักษณ์เชื่อมคลาวด์
-        function updateSyncUI(isConnected) {
-            if (isConnected) {
-                btnDisconnectGas.classList.remove('hidden');
-                syncStatus.className = "flex items-center space-x-2.5 p-4 bg-pastel-100 rounded-2xl text-pastel-900 border border-pastel-200";
-                syncStatus.innerHTML = `
-                    <span class="w-3.5 h-3.5 rounded-full bg-pastel-500 animate-pulse block"></span>
-                    <span class="text-sm font-extrabold">สถานะ: เชื่อมต่อเก็บสถิติลง Google Sheet เรียบร้อยสดใหม่</span>
-                `;
-            } else {
-                btnDisconnectGas.classList.add('hidden');
-                syncStatus.className = "flex items-center space-x-2.5 p-4 bg-slate-100 rounded-2xl text-slate-600 border border-slate-200";
-                syncStatus.innerHTML = `
-                    <span class="w-3.5 h-3.5 rounded-full bg-slate-400 block"></span>
-                    <span class="text-sm font-bold">สถานะ: บันทึกออฟไลน์ในเครื่องนี้เท่านั้น</span>
-                `;
-            }
-        }
+        // ฟังก์ชันเริ่มเชื่อมต่อคลาวด์แบบเรียลไทม์ (RULE 3 - Auth Before Queries)
+        const setupRealtimeSync = async () => {
+            const cloudPulse = document.getElementById('cloudStatusPulse');
+            const cloudText = document.getElementById('cloudStatusText');
+            const cloudBadge = document.getElementById('cloudStatusBadge');
 
-        // ดึงข้อมูลสินค้าของคลังที่จำลองในเครื่อง
+            if (!auth || !db) {
+                console.log("Firebase config not available. Running on local fallback mode.");
+                if (cloudPulse) cloudPulse.className = "w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5";
+                if (cloudText) cloudText.textContent = "โหมดบันทึกส่วนตัวในเครื่องนี้";
+                if (cloudBadge) cloudBadge.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200";
+                
+                loadProductsLocally();
+                return;
+            }
+
+            try {
+                // เรียกใช้ Authentication ก่อนทำ Query (ตามข้อกำหนด RULE 3)
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Auth Exception:", err);
+                showToastNotification("⚠️ การเชื่อมโยงคลาวด์ขัดข้อง กำลังใช้หน่วยความจำเครื่องแทน", "warning");
+                loadProductsLocally();
+                return;
+            }
+
+            // ฟังความเปลี่ยนแปลงของระบบตรวจสิทธิ์
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                if (user) {
+                    if (cloudPulse) {
+                        cloudPulse.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse inline-block mr-1.5";
+                    }
+                    if (cloudText) {
+                        cloudText.textContent = "ซิงค์สดทุกเครื่องแล้ว 🟢";
+                    }
+                    if (cloudBadge) {
+                        cloudBadge.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200";
+                    }
+
+                    // แสดงสัญลักษณ์ User ID เต็มเพื่อระบบ Multi-user
+                    const userIdDisplay = document.getElementById('userIdDisplay');
+                    if (userIdDisplay) {
+                        userIdDisplay.textContent = user.uid;
+                    }
+
+                    // เริ่มดาวน์โหลดข้อมูลสดจากคลาวด์แบบเรียลไทม์
+                    startListeningToFirestore();
+                } else {
+                    if (cloudPulse) cloudPulse.className = "w-2 h-2 rounded-full bg-slate-400 inline-block mr-1.5";
+                    if (cloudText) cloudText.textContent = "ไม่ได้เชื่อมต่อระบบคลาวด์";
+                    loadProductsLocally();
+                }
+            });
+        };
+
+        // เริ่มรับข้อมูลเปลี่ยนแปลงสดจากคลาวด์ (Firestore Real-time Listener)
+        const startListeningToFirestore = () => {
+            if (!db || !currentUser) return;
+
+            // RULE 1: artifacts/{appId}/public/data/products
+            const productsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'products');
+
+            // RULE 2: คิวรี่เรียบง่าย ไม่ใช้เงื่อนไขซับซ้อน ดึงข้อมูลทั้งหมดแล้วแยกกรอง/เรียงลำดับในฝั่ง Javascript แทน
+            onSnapshot(productsCollection, (snapshot) => {
+                products = [];
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    products.push({
+                        id: docSnap.id,
+                        name: data.name || '',
+                        lot: data.lot || '',
+                        quantity: data.quantity || 1,
+                        expiryDate: data.expiryDate || ''
+                    });
+                });
+
+                // เรียงลำดับตามวันที่หมดอายุจากน้อยไปหามากในหน่วยความจำเครื่อง
+                products.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+
+                renderProducts();
+            }, (error) => {
+                console.error("Firestore onSnapshot error:", error);
+                showToastNotification("⚠️ เชื่อมต่อข้อมูลเวลาจริงล้มเหลว กำลังใช้หน่วยความจำเครื่องแทน", "warning");
+                loadProductsLocally();
+            });
+        };
+
+        // โหลดข้อมูลแบบ Local Storage ชั่วคราว (Fallback)
         function loadProductsLocally() {
             const stored = localStorage.getItem(`${appId}_products`);
             if (stored) {
@@ -498,12 +621,11 @@ function doPost(e) {
                     products = [];
                 }
             } else {
-                // ดึงสินค้าตัวอย่างลำดับที่ 4 กลับมาเพื่อความสมบูรณ์ในการแสดงผลลัพธ์บน Chart.js
+                // สร้างสินค้าจำลองขึ้นมา 3 รายการ
                 products = [
                     { id: "MOCK-1", name: "นมจืดเมจิ (ขวดใหญ่)", lot: "ตู้แช่หน้าร้าน", quantity: 1, expiryDate: createOffsetDateString(4) },
                     { id: "MOCK-2", name: "ขนมปังแถวโฮลวีตสไลด์", lot: "ชั้นวางขนมปัง", quantity: 1, expiryDate: createOffsetDateString(-2) },
-                    { id: "MOCK-3", name: "ยาลดไข้พาราเซตามอล ซาร่า", lot: "ตู้ยาใกล้เคาน์เตอร์", quantity: 1, expiryDate: createOffsetDateString(12) },
-                    { id: "MOCK-4", name: "เครื่องดื่มเกลือแร่สปอนเซอร์", lot: "ชั้นวางเครื่องดื่ม", quantity: 1, expiryDate: createOffsetDateString(20) }
+                    { id: "MOCK-3", name: "ยาลดไข้พาราเซตามอล ซาร่า", lot: "ตู้ยาใกล้เคาน์เตอร์", quantity: 1, expiryDate: createOffsetDateString(12) }
                 ];
                 saveProductsLocally();
             }
@@ -514,41 +636,28 @@ function doPost(e) {
             localStorage.setItem(`${appId}_products`, JSON.stringify(products));
         }
 
-        // โหลดรายการสินค้าจาก Sheet (GET)
-        async function fetchProductsFromCloud() {
-            if (!gasUrl) return;
-            showToastNotification("🔄 กำลังดึงรายการของใหม่สุดจาก Google Sheet...", "info");
-
-            try {
-                const response = await fetch(gasUrl);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (Array.isArray(data)) {
-                        products = data.map(item => ({
-                            id: item.id || 'PROD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-                            name: item.name,
-                            lot: item.lot || '',
-                            quantity: Number(item.quantity) || 1,
-                            expiryDate: item.expiryDate ? formatToStandardDate(item.expiryDate) : ''
-                        })).filter(item => item.name);
-
-                        saveProductsLocally();
-                        renderProducts();
-                        showToastNotification("✅ อัปเดตตารางของจากสเปรดชีตสำเร็จแล้ว!", "success");
-                    }
-                }
-            } catch(e) {
-                console.error(e);
-                showToastNotification("⚠️ การซิงค์ออนไลน์ไม่สำเร็จ กำลังเปิดโหมดบันทึกออฟไลน์ทดแทน", "warning");
-                loadProductsLocally();
+        // ปรับปรุงรายงานสถานะ Google Sheets
+        function updateGoogleSheetUI(isConnected) {
+            if (isConnected) {
+                btnDisconnectGas.classList.remove('hidden');
+                syncStatus.className = "flex items-center space-x-2.5 p-4 bg-pastel-100 rounded-2xl text-pastel-900 border border-pastel-200";
+                syncStatus.innerHTML = `
+                    <span class="w-3.5 h-3.5 rounded-full bg-pastel-500 animate-pulse block"></span>
+                    <span class="text-sm font-extrabold">สถานะ: ส่งข้อมูลคู่ขนานไป Google Sheets แล้ว</span>
+                `;
+            } else {
+                btnDisconnectGas.classList.add('hidden');
+                syncStatus.className = "flex items-center space-x-2.5 p-4 bg-slate-100 rounded-2xl text-slate-600 border border-slate-200";
+                syncStatus.innerHTML = `
+                    <span class="w-3.5 h-3.5 rounded-full bg-slate-400 block"></span>
+                    <span class="text-sm font-bold">สถานะของระบบ: ไม่ได้ส่งข้อมูลไป Google Sheets</span>
+                `;
             }
         }
 
-        // เพิ่มรายการเข้าไปในสเปรดชีต (POST)
-        async function postProductToCloud(product) {
-            if (!gasUrl) return true;
-            showToastNotification("☁️ ส่งคำสั่งบันทึกไปยัง Google Sheet...", "info");
-
+        // ส่งข้อมูลเข้าสเปรดชีต (POST)
+        async function postProductToGoogleSheet(product) {
+            if (!gasUrl) return;
             try {
                 await fetch(gasUrl, {
                     method: 'POST',
@@ -556,12 +665,8 @@ function doPost(e) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(product)
                 });
-                showToastNotification("✅ เพิ่มสินค้าและอัปเดตลง Google Sheet สำเร็จ!", "success");
-                return true;
             } catch(e) {
-                console.error(e);
-                showToastNotification("❌ ส่งบันทึกข้อมูลออนไลน์ล้มเหลว", "error");
-                return false;
+                console.error("Google Sheets error:", e);
             }
         }
 
@@ -594,7 +699,7 @@ function doPost(e) {
                 productName.value = speechToText;
                 showToastNotification(`🎙️ ตรวจพบคำพูด: "${speechToText}"`, "success");
 
-                // กระตุ้นระบบให้ค้นหาคำแนะนำต่อทันที
+                // ค้นหาตัวเลือกคำแนะนำต่อทันที
                 const event = new Event('input', { bubbles: true });
                 productName.dispatchEvent(event);
                 productName.focus();
@@ -602,7 +707,7 @@ function doPost(e) {
 
             voiceRecognition.onerror = (e) => {
                 console.error(e);
-                showToastNotification("❌ รับคำพูดขัดข้อง กรุณากดพูดใหมีกว่าเดิมนะครับ", "error");
+                showToastNotification("❌ รับคำพูดขัดข้อง กรุณากดพูดใหม่อีกครั้งนะครับ", "error");
                 stopVoiceRecordingUI();
             };
 
@@ -710,7 +815,7 @@ function doPost(e) {
             renderProducts();
         }
 
-        // พิเศษ: ฟังก์ชันสลับตัวกรองสถานะ และเลื่อนหน้าจอลงไปดูรายการทันที
+        // ฟังก์ชันสลับตัวกรองสถานะ และเลื่อนหน้าจอลงไปดูรายการทันที
         function setFilterAndScroll(type) {
             setFilter(type);
             const section = document.getElementById('products-section');
@@ -895,15 +1000,28 @@ function doPost(e) {
             });
         }
 
-        // ดำเนินการลบสินค้า
-        function deleteProductItem(id) {
-            products = products.filter(item => item.id !== id);
-            saveProductsLocally();
-            renderProducts();
-            showToastNotification("🗑️ ทำการลบสินค้าชิ้นนี้ออกเรียบร้อยแล้ว", "warning");
-        }
+        // ดำเนินการลบสินค้า (ลบเรียลไทม์จากทุกเครื่องทันที)
+        const deleteProductItem = async (id) => {
+            if (db && currentUser) {
+                try {
+                    // ลบข้อมูลโดยอิง Doc ID บน Firestore (ลบเครื่องนี้ เครื่องอื่นจะหายทันที)
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', id);
+                    await deleteDoc(docRef);
+                    showToastNotification("🗑️ ลบสินค้าออกจากระบบคลาวด์แล้ว ทุกเครื่องลบออกพร้อมกัน", "warning");
+                } catch (e) {
+                    console.error("Delete Error:", e);
+                    showToastNotification("❌ การลบข้อมูลล้มเหลว", "error");
+                }
+            } else {
+                // โหมด Fallback ออฟไลน์
+                products = products.filter(item => item.id !== id);
+                saveProductsLocally();
+                renderProducts();
+                showToastNotification("🗑️ ทำการลบสินค้าในเครื่องนี้เรียบร้อยแล้ว", "warning");
+            }
+        };
 
-        // เพิ่มบันทึกข้อมูลสินค้าล็อตใหม่
+        // เพิ่มบันทึกข้อมูลสินค้าล็อตใหม่ (อัปโหลดขึ้นเรียลไทม์)
         productForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -925,24 +1043,33 @@ function doPost(e) {
                 expiryDate: expiry
             };
 
-            // ออฟไลน์บันทึกลงตัวเครื่องล่วงหน้า
-            products.unshift(newProductObj);
-            saveProductsLocally();
-
-            // ส่งข้อมูลไปยัง Google Sheet ทันที
-            const completeSync = await postProductToCloud(newProductObj);
-
-            if (completeSync) {
-                productForm.reset();
-                renderProducts();
+            if (db && currentUser) {
+                try {
+                    // อัปโหลดสดไปยังคลาวด์ (RULE 1)
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', newProductObj.id);
+                    await setDoc(docRef, newProductObj);
+                    showToastNotification("✨ บันทึกสินค้าเรียบร้อย ทุกเครื่องเห็นข้อมูลตรงกันทันที", "success");
+                    
+                    // ส่งข้อมูล Google Sheet แบบคู่ขนานถ้าเปิดใช้ไว้
+                    postProductToGoogleSheet(newProductObj);
+                } catch (e) {
+                    console.error("Upload Error:", e);
+                    showToastNotification("❌ อัปโหลดข้อมูลคลาวด์ไม่สำเร็จ", "error");
+                }
             } else {
+                // โหมด Fallback ออฟไลน์
+                products.unshift(newProductObj);
+                saveProductsLocally();
                 renderProducts();
+                showToastNotification("💾 บันทึกในเครื่องเป็นข้อมูลสำรองชั่วคราว", "success");
+                postProductToGoogleSheet(newProductObj);
             }
+
+            productForm.reset();
         });
 
         // อัปเดตสถิติ Dashboard ทั่วคลังแยกช่วงวันชัดเจน และส่งข้อมูลซิงค์ให้แผนภูมิวงกลม
         function updateStatisticsCounter() {
-            let total = products.length;
             let expiring = 0;
             let expiring15 = 0;
             let expired = 0;
@@ -977,6 +1104,7 @@ function doPost(e) {
             const toastIcon = document.getElementById('toastIcon');
             const toastText = document.getElementById('toastText');
 
+            if (!toast || !toastText) return;
             toastText.textContent = message;
 
             if (type === 'success') {
@@ -1027,23 +1155,17 @@ function doPost(e) {
             return date.toISOString().split('T')[0];
         }
 
-        // คัดลอกรหัส Apps Script
-        function copyToClipboardScript() {
-            const pre = document.querySelector('#modalConfig pre');
-            const textarea = document.createElement('textarea');
-            textarea.value = pre.innerText;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            showToastNotification("📋 คัดลอกรหัสสคริปต์ Google Sheets แล้ว!", "success");
-        }
-
         // ฟิลเตอร์ป้องกันปัญหาอักขระพิเศษรบกวน HTML
         function escapeHtmlString(text) {
             const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
             return text ? String(text).replace(/[&<>"']/g, m => map[m]) : '';
         }
+
+        // ผูกฟังก์ชันต่าง ๆ เข้ากับ window เพื่อให้ปุ่ม HTML เรียกใช้งานได้โดยตรง
+        window.adjustQty = adjustQty;
+        window.setFilter = setFilter;
+        window.setFilterAndScroll = setFilterAndScroll;
+        window.deleteProductItem = deleteProductItem;
     </script>
 </body>
 </html>
