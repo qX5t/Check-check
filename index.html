@@ -166,12 +166,23 @@
                             </div>
                         </div>
 
-                        <!-- วันหมดอายุ (จัดวางขนาดใหญ่เด่นชัด เต็มความกว้าง h-16) -->
-                        <div>
-                            <label class="block text-lg font-bold text-pastel-900 mb-2" for="productExpiry">
-                                📅 วันหมดอายุบนสินค้า
-                            </label>
-                            <input type="date" id="productExpiry" required class="w-full h-16 px-5 text-lg rounded-2xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-extrabold bg-white text-pastel-900">
+                        <!-- จัดวางช่องข้อมูลแถวละสองช่องขนาดใหญ่พิเศษ (วันหมดอายุ และ ตำแหน่งที่เก็บ) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- ช่องที่ 1: วันหมดอายุ (ขนาดใหญ่ h-16) -->
+                            <div>
+                                <label class="block text-lg font-bold text-pastel-900 mb-2" for="productExpiry">
+                                    📅 วันหมดอายุบนสินค้า
+                                </label>
+                                <input type="date" id="productExpiry" required class="w-full h-16 px-5 text-lg rounded-2xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-extrabold bg-white text-pastel-900">
+                            </div>
+
+                            <!-- ช่องที่ 2: ตำแหน่งที่เก็บสินค้า (ขนาดใหญ่ h-16) -->
+                            <div>
+                                <label class="block text-lg font-bold text-pastel-900 mb-2" for="productLot">
+                                    📍 ตำแหน่งที่วาง / ที่เก็บ
+                                </label>
+                                <input type="text" id="productLot" placeholder="เช่น ชั้นวางหน้าร้าน, ตู้แช่เย็น..." class="w-full h-16 px-5 text-lg rounded-2xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-semibold bg-white text-pastel-900 placeholder-pastel-300 transition-all">
+                            </div>
                         </div>
 
                         <!-- ปุ่มเซฟรายการอันโตๆ สำหรับแตะในร้านค้าได้รวดเร็ว -->
@@ -421,6 +432,7 @@ function doPost(e) {
         const micEmoji = document.getElementById('micEmoji');
         const micText = document.getElementById('micText');
         const suggestionBox = document.getElementById('suggestionBox');
+        const productLot = document.getElementById('productLot');
         const productExpiry = document.getElementById('productExpiry');
 
         const productCardsContainer = document.getElementById('productCardsContainer');
@@ -1010,6 +1022,7 @@ function doPost(e) {
             e.preventDefault();
 
             const name = productName.value.trim();
+            const lot = productLot.value.trim();
             const expiry = productExpiry.value;
 
             if (!name || !expiry) {
@@ -1021,7 +1034,7 @@ function doPost(e) {
                 id: 'PROD-' + Date.now().toString(36).toUpperCase(),
                 name: name,
                 category: '', // ส่งค่าว่าง เพื่อรักษาโครงสร้าง Google Sheets เดิมไม่ให้คอลัมน์คลาดเคลื่อน
-                lot: '',      // เอาตำแหน่งที่วางออก ส่งค่าว่างเพื่อไม่ให้คอลัมน์ Google Sheet เลื่อนคลาดเคลื่อน
+                lot: lot,      // เอาตำแหน่งที่วางออก ส่งค่าว่างเพื่อไม่ให้คอลัมน์ Google Sheet เลื่อนคลาดเคลื่อน
                 quantity: 1,  // กำหนดจำนวนสินค้าเริ่มต้นเป็น 1 เสมอเนื่องจากตัดช่องกรอกออกแล้ว
                 expiryDate: expiry
             };
