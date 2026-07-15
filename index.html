@@ -77,14 +77,14 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-pastel-900 leading-tight">ร้านธนภรรุ่งเรือง</h1>
-                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1">
-                        <span class="text-sm font-semibold text-pastel-500">ระบบเช็ควันหมดอายุสินค้าในร้าน</span>
-                        <!-- ป้ายแสดงการซิงค์ข้อมูลเรียลไทม์ผ่าน Google Sheets -->
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200" id="cloudStatusBadge">
+                    <p class="text-sm font-semibold text-pastel-505 mt-1 flex items-center justify-center sm:justify-start gap-2">
+                        <span>ระบบเช็ควันหมดอายุสินค้าในร้าน</span>
+                        <!-- ป้ายแสดงสถานะการซิงค์ข้อมูลเรียลไทม์ผ่าน Google Sheets -->
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200" id="cloudStatusBadge">
                             <span id="cloudStatusPulse" class="w-2 h-2 rounded-full bg-slate-400 mr-1.5 inline-block"></span>
                             <span id="cloudStatusText">กำลังดึงข้อมูล...</span>
                         </span>
-                    </div>
+                    </p>
                 </div>
             </div>
 
@@ -140,7 +140,7 @@
                         <h2 class="text-2xl font-extrabold text-pastel-900 flex items-center space-x-2">
                             <span>📝 บันทึกข้อมูลสินค้าเข้าระบบ</span>
                         </h2>
-                        <p class="text-sm text-pastel-50 mt-1 font-medium">พิมพ์เอง หรือแตะที่ปุ่มไมโครโฟนเพื่อพูดชื่อสินค้าได้เลยครับ</p>
+                        <p class="text-sm text-pastel-50 mt-1 font-medium font-bold text-pastel-500">บันทึกตรงลง Google Sheets อัตโนมัติ ซิงค์ข้อมูลเหมือนกันทุกเครื่อง</p>
                     </div>
 
                     <form id="productForm" class="space-y-6" autocomplete="off">
@@ -166,23 +166,12 @@
                             </div>
                         </div>
 
-                        <!-- จัดวางช่องข้อมูลแถวละสองช่องขนาดใหญ่พิเศษ (วันหมดอายุ และ ตำแหน่งที่เก็บ) -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <!-- ช่องที่ 1: วันหมดอายุ (ขนาดใหญ่ h-16) -->
-                            <div>
-                                <label class="block text-lg font-bold text-pastel-900 mb-2" for="productExpiry">
-                                    📅 วันหมดอายุบนสินค้า
-                                </label>
-                                <input type="date" id="productExpiry" required class="w-full h-16 px-5 text-lg rounded-2xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-extrabold bg-white text-pastel-900">
-                            </div>
-
-                            <!-- ช่องที่ 2: ตำแหน่งที่เก็บสินค้า (ขนาดใหญ่ h-16) -->
-                            <div>
-                                <label class="block text-lg font-bold text-pastel-900 mb-2" for="productLot">
-                                    📍 ตำแหน่งที่วาง / ที่เก็บ
-                                </label>
-                                <input type="text" id="productLot" placeholder="เช่น ชั้นวางหน้าร้าน, ตู้แช่เย็น..." class="w-full h-16 px-5 text-lg rounded-2xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-semibold bg-white text-pastel-900 placeholder-pastel-300 transition-all">
-                            </div>
+                        <!-- วันหมดอายุ (จัดวางขนาดใหญ่เด่นชัด เต็มความกว้าง h-16) -->
+                        <div>
+                            <label class="block text-lg font-bold text-pastel-900 mb-2" for="productExpiry">
+                                📅 วันหมดอายุที่ระบุบนสินค้า
+                            </label>
+                            <input type="date" id="productExpiry" required class="w-full h-16 px-5 text-lg rounded-2xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-extrabold bg-white text-pastel-900">
                         </div>
 
                         <!-- ปุ่มเซฟรายการอันโตๆ สำหรับแตะในร้านค้าได้รวดเร็ว -->
@@ -222,7 +211,7 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b-2 border-pastel-50 pb-4 mb-4">
                 <div>
                     <h2 class="text-2xl font-extrabold text-pastel-900">📦 รายการสินค้าสะสมในร้าน</h2>
-                    <p class="text-sm text-pastel-500 font-medium">แตะปุ่มเพื่อเลือกกรองดูสินค้าแต่ละสถานะได้เลย</p>
+                    <p class="text-sm text-pastel-500 font-medium">ข้อมูลอัปเดตตรงกันทุกจอ ลบแถวใน Google Sheets พร้อมกันทันที</p>
                 </div>
 
                 <!-- ปุ่มตัวเลือกกรองสินค้าอันใหญ่ แตะสะดวกไม่บดบัง ครอบคลุมทุกสัดส่วน -->
@@ -237,7 +226,7 @@
 
             <!-- ช่องพิมพ์ค้นหาด่วนตัวหนังสือใหญ่ -->
             <div class="relative mb-4">
-                <input type="text" id="searchTerm" oninput="renderProducts()" placeholder="🔍 ค้นหาสินค้าด่วนพิมพ์ตรงนี้... (เช่น นม, ขนมปัง)" class="w-full pl-12 pr-4 py-4 text-lg rounded-2xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-semibold bg-white text-pastel-900 placeholder-pastel-300">
+                <input type="text" id="searchTerm" oninput="renderProducts()" placeholder="🔍 ค้นหาสินค้าด่วนพิมพ์ตรงนี้... (เช่น นม, ขนมปัง, ตู้แช่)" class="w-full pl-12 pr-4 py-4 text-lg rounded-2xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-semibold bg-white text-pastel-900 placeholder-pastel-300">
             </div>
 
             <!-- รายการการ์ดสินค้า -->
@@ -442,7 +431,6 @@ function doPost(e) {
         const micEmoji = document.getElementById('micEmoji');
         const micText = document.getElementById('micText');
         const suggestionBox = document.getElementById('suggestionBox');
-        const productLot = document.getElementById('productLot');
         const productExpiry = document.getElementById('productExpiry');
 
         const productCardsContainer = document.getElementById('productCardsContainer');
@@ -559,9 +547,9 @@ function doPost(e) {
             } else {
                 // สร้างสินค้าจำลองขึ้นมา 3 รายการ
                 products = [
-                    { id: "MOCK-1", name: "นมจืดเมจิ (ขวดใหญ่)", lot: "ตู้แช่หน้าร้าน", quantity: 1, expiryDate: createOffsetDateString(4) },
-                    { id: "MOCK-2", name: "ขนมปังแถวโฮลวีตสไลด์", lot: "ชั้นวางขนมปัง", quantity: 1, expiryDate: createOffsetDateString(-2) },
-                    { id: "MOCK-3", name: "ยาลดไข้พาราเซตามอล ซาร่า", lot: "ตู้ยาใกล้เคาน์เตอร์", quantity: 1, expiryDate: createOffsetDateString(12) }
+                    { id: "MOCK-1", name: "นมจืดเมจิ (ขวดใหญ่)", quantity: 1, expiryDate: createOffsetDateString(4) },
+                    { id: "MOCK-2", name: "ขนมปังแถวโฮลวีตสไลด์", quantity: 1, expiryDate: createOffsetDateString(-2) },
+                    { id: "MOCK-3", name: "ยาลดไข้พาราเซตามอล ซาร่า", quantity: 1, expiryDate: createOffsetDateString(12) }
                 ];
                 saveProductsLocally();
             }
@@ -615,7 +603,6 @@ function doPost(e) {
                         products = data.map(item => ({
                             id: item.id || 'PROD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
                             name: item.name || '',
-                            lot: item.lot || '',
                             quantity: Number(item.quantity) || 1,
                             expiryDate: item.expiryDate ? formatToStandardDate(item.expiryDate) : ''
                         })).filter(item => item.name); // กรองแถวเปล่าที่อาจปนมาออก
@@ -881,8 +868,7 @@ function doPost(e) {
             // ค้นหาข้อความ
             if (search) {
                 filteredList = filteredList.filter(item => 
-                    item.name.toLowerCase().includes(search) ||
-                    (item.lot && item.lot.toLowerCase().includes(search))
+                    item.name.toLowerCase().includes(search)
                 );
             }
 
@@ -952,7 +938,6 @@ function doPost(e) {
                             <span class="text-xl font-extrabold text-pastel-900">${escapeHtmlString(item.name)}</span>
                             <span class="px-3 py-1 rounded-full text-xs font-bold border ${badgeStyle}">${textStatus}</span>
                         </div>
-                        ${item.lot ? `<div class="text-sm font-bold text-pastel-500">📍 ที่เก็บ: ${escapeHtmlString(item.lot)}</div>` : ''}
                     </div>
                     <div class="flex items-center justify-between w-full md:w-auto border-t-2 border-pastel-50 md:border-0 pt-3 md:pt-0">
                         <div class="md:text-right pr-4">
@@ -1010,7 +995,6 @@ function doPost(e) {
             e.preventDefault();
 
             const name = productName.value.trim();
-            const lot = productLot.value.trim();
             const expiry = productExpiry.value;
 
             if (!name || !expiry) {
@@ -1022,8 +1006,8 @@ function doPost(e) {
                 id: 'PROD-' + Date.now().toString(36).toUpperCase(),
                 name: name,
                 category: '',
-                lot: lot,      
-                quantity: 1,
+                lot: '',      
+                quantity: 1,  // กำหนดจำนวนสินค้าเริ่มต้นเป็น 1 เสมอเนื่องจากตัดช่องกรอกออกแล้ว
                 expiryDate: expiry
             };
 
@@ -1063,7 +1047,7 @@ function doPost(e) {
             }
         });
 
-        // อัปเดตสถิติ Dashboard แยกช่วงวันชัดเจน
+        // อัปเดตสถิติ Dashboard ทั่วคลังแยกช่วงวันชัดเจน และส่งข้อมูลซิงค์ให้แผนภูมิวงกลม
         function updateStatisticsCounter() {
             let expiring = 0;
             let expiring15 = 0;
@@ -1083,6 +1067,7 @@ function doPost(e) {
                 }
             });
 
+            // อัปเดตจำนวนในการทำงานของ UI
             statExpiring.textContent = expiring;
             statExpiring15.textContent = expiring15;
             statExpired.textContent = expired;
@@ -1111,7 +1096,7 @@ function doPost(e) {
                 toast.className = "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center bg-amber-500 text-slate-950 px-6 py-5 rounded-3xl shadow-2xl space-x-3 transition-all duration-300 transform translate-y-0 opacity-100 w-[90%] max-w-md border-2 border-amber-200 font-black text-lg text-center justify-center";
             } else {
                 toastIcon.textContent = '🏪';
-                toast.className = "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center bg-pastel-900 text-white px-6 py-5 rounded-3xl shadow-2xl space-x-3 transition-all duration-300 transform translate-y-0 opacity-100 w-[90%] max-w-md border-2 border-pastel-300 font-extrabold text-lg text-center justify-center";
+                toast.className = "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center bg-pastel-900 text-white px-6 py-5 rounded-3xl shadow-2xl space-x-3 transform translate-y-0 opacity-100 w-[90%] max-w-md border-2 border-pastel-300 font-extrabold text-lg text-center justify-center";
             }
 
             setTimeout(() => {
