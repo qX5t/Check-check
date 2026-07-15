@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full bg-[#f4fcf7]">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ร้านธนภรรุ่งเรือง - ระบบเช็ควันหมดอายุสินค้าในร้าน</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js สำหรับแสดงแผนภูมิรูปวงกลม -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pastel: {
+                            50: '#f0fbf5',   // มิ้นต์อ่อนมากสำหรับพื้นหลัง
+                            100: '#e1f7eb',  // มิ้นต์อ่อนพิเศษ
+                            200: '#c2f0d5',  // พาสเทลเขียวสว่าง
+                            300: '#94e3b7',  // เขียวพาสเทลกลาง
+                            400: '#5ecb90',  // เขียวพาสเทลเด่น
+                            500: '#3fa370',  // เขียวแบรนด์หลัก (เข้มขึ้นเพื่อให้อ่านง่ายสำหรับผู้สูงอายุ)
+                            600: '#2d8256',  // เขียวเน้นหนัก
+                            900: '#143d28',  // เขียวเข้มสุดๆ สำหรับข้อความ (เพื่อ High Contrast)
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Sarabun', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Google: Sarabun (เน้นอ่านง่าย สบายตา) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* บังคับใช้ฟอนต์ Sarabun กับทุกปุ่ม กล่องข้อความ และส่วนประกอบทั้งหมดในหน้าจอ */
+        *, body, input, select, button, textarea, option {
+            font-family: 'Sarabun', sans-serif !important;
+        }
+        body {
+            background-color: #f4fcf7;
+            /* เพิ่มขนาดตัวอักษรพื้นฐานให้ใหญ่อ่านง่าย */
+            font-size: 1.125rem; /* 18px */
+        }
+        /* ซ่อน Scrollbar ของคลังข้อมูล */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* แอนิเมชันสำหรับไมโครโฟนกะพริบเวลารับเสียง */
+        @keyframes record-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0px rgba(239, 68, 68, 0.4); }
+            50% { transform: scale(1.08); box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+        }
+        .mic-active-glow {
+            animation: record-pulse 1.5s infinite;
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #ef4444 !important;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col text-pastel-900 antialiased">
+
+    <!-- แถบด้านบนขนาดใหญ่ ดีไซน์สำหรับร้านธนภรรุ่งเรือง -->
+    <header class="bg-white border-b-2 border-pastel-100 sticky top-0 z-30 shadow-sm py-4">
+        <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3.5 text-center sm:text-left">
+                <div class="bg-pastel-100 p-3 rounded-2xl">
+                    <span class="text-3xl">🏪</span>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tight text-pastel-900 leading-tight">ร้านธนภรรุ่งเรือง</h1>
+                    <p class="text-sm font-semibold text-pastel-500">ระบบเช็ควันหมดอายุสินค้าในร้าน</p>
+                </div>
+            </div>
+
+            <!-- ปุ่มตั้งค่า Google Sheet สำหรับร้านค้า -->
+            <button id="btnOpenConfig" class="inline-flex items-center space-x-2 bg-pastel-100 hover:bg-pastel-200 text-pastel-900 px-5 py-3 rounded-2xl text-sm font-bold transition duration-200 border-2 border-pastel-200">
+                <span>☁️ เชื่อมข้อมูล Google Sheet</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- พื้นที่แสดงผลหลัก -->
+    <main class="flex-1 max-w-5xl w-full mx-auto p-4 space-y-8 pb-20">
+
+        <!-- แถวที่ 1 (บนสุด): กล่องข้อมูลตัวเลขสรุปสถานะสินค้า 4 กล่องสีพาสเทลหลัก ทำหน้าที่เป็นลิงก์กรองข้อมูลอัจฉริยะ (Grid cols 2) -->
+        <div class="grid grid-cols-2 gap-6 max-w-5xl mx-auto">
+            
+            <!-- ลิงก์ที่ 1: หมดอายุแล้ว (สีแดงพาสเทล สะดุดตา) -->
+            <div onclick="setFilterAndScroll('expired')" class="bg-[#fff5f5] hover:bg-[#fee2e2] active:scale-95 cursor-pointer p-6 sm:p-8 rounded-3xl border-2 border-rose-300 flex flex-col items-center justify-center text-center shadow-sm hover:shadow transition-all duration-150 group">
+                <span class="text-lg sm:text-xl font-extrabold text-rose-700">หมดอายุแล้ว!</span>
+                <span id="statExpired" class="text-5xl sm:text-6xl font-black text-rose-600 mt-2">0</span>
+                <span class="text-xs font-bold text-rose-500 mt-2 bg-rose-100 px-3 py-1 rounded-full group-hover:bg-rose-200 transition-colors">👉 แตะเพื่อดูสินค้ากลุ่มนี้ 🔎</span>
+            </div>
+            
+            <!-- ลิงก์ที่ 2: วิกฤต 1-7 วัน (สีส้มพาสเทล) -->
+            <div onclick="setFilterAndScroll('expiring')" class="bg-[#fffbeb] hover:bg-[#fef3c7] active:scale-95 cursor-pointer p-6 sm:p-8 rounded-3xl border-2 border-amber-300 flex flex-col items-center justify-center text-center shadow-sm hover:shadow transition-all duration-150 group">
+                <span class="text-lg sm:text-xl font-extrabold text-amber-700">วิกฤต (1-7 วัน)</span>
+                <span id="statExpiring" class="text-5xl sm:text-6xl font-black text-amber-600 mt-2">0</span>
+                <span class="text-xs font-bold text-amber-600 mt-2 bg-amber-100 px-3 py-1 rounded-full group-hover:bg-amber-200 transition-colors">👉 แตะเพื่อดูสินค้ากลุ่มนี้ 🔎</span>
+            </div>
+
+            <!-- ลิงก์ที่ 3: เฝ้าระวัง 8-15 วัน (สีเหลืองพาสเทล) -->
+            <div onclick="setFilterAndScroll('expiring_15')" class="bg-[#fffdf0] hover:bg-[#fffbeb] active:scale-95 cursor-pointer p-6 sm:p-8 rounded-3xl border-2 border-yellow-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow transition-all duration-150 group">
+                <span class="text-lg sm:text-xl font-extrabold text-yellow-700">เฝ้าระวัง (8-15 วัน)</span>
+                <span id="statExpiring15" class="text-5xl sm:text-6xl font-black text-yellow-600 mt-2">0</span>
+                <span class="text-xs font-bold text-yellow-600 mt-2 bg-yellow-100 px-3 py-1 rounded-full group-hover:bg-yellow-200 transition-colors">👉 แตะเพื่อดูสินค้ากลุ่มนี้ 🔎</span>
+            </div>
+
+            <!-- ลิงก์ที่ 4: ยังปลอดภัยอยู่ (สีเขียวพาสเทล) -->
+            <div onclick="setFilterAndScroll('safe')" class="bg-pastel-50 hover:bg-pastel-100 active:scale-95 cursor-pointer p-6 sm:p-8 rounded-3xl border-2 border-pastel-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow transition-all duration-150 group">
+                <span class="text-lg sm:text-xl font-extrabold text-pastel-700">ยังปลอดภัยอยู่</span>
+                <span id="statSafe" class="text-5xl sm:text-6xl font-black text-pastel-600 mt-2">0</span>
+                <span class="text-xs font-bold text-pastel-600 mt-2 bg-pastel-200 px-3 py-1 rounded-full group-hover:bg-pastel-300 transition-colors">👉 แตะเพื่อดูสินค้ากลุ่มนี้ 🔎</span>
+            </div>
+        </div>
+
+        <!-- หน้าจอแถวกลาง: จับคู่ฟอร์มบันทึกสินค้า (ซ้าย) คู่กับแผนภูมิสัดส่วน (ขวา)  -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            
+            <!-- ฝั่งซ้าย: ฟอร์มป้อนข้อมูลสินค้าขนาดใหญ่เป็นพิเศษ (Grid span 7) -->
+            <div class="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-2 border-pastel-100 space-y-6 flex flex-col justify-between">
+                <div>
+                    <div class="border-b-2 border-pastel-50 pb-4 mb-4">
+                        <h2 class="text-2xl font-extrabold text-pastel-900 flex items-center space-x-2">
+                            <span>📝 บันทึกข้อมูลสินค้าเข้าระบบ</span>
+                        </h2>
+                        <p class="text-sm text-pastel-50 mt-1 font-medium">พิมพ์เอง หรือแตะที่ปุ่มไมโครโฟนเพื่อพูดชื่อสินค้าได้เลยครับ</p>
+                    </div>
+
+                    <form id="productForm" class="space-y-6" autocomplete="off">
+                        <!-- ส่วนป้อนชื่อสินค้า และ แตะสั่งด้วยเสียงแบบใหญ่โต -->
+                        <div class="relative">
+                            <label class="block text-lg font-bold text-pastel-900 mb-2" for="productName">
+                                🍏 ชื่อสินค้า / ยี่ห้อสินค้า
+                            </label>
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <!-- ช่องกรอกตัวหนาใหญ่ -->
+                                <input type="text" id="productName" required placeholder="เช่น นมสดเมจิ, ขนมปังฟาร์มเฮ้าส์..." class="flex-1 px-5 py-4 text-lg rounded-2xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-semibold bg-pastel-50/20 text-pastel-900 placeholder-pastel-300 transition-all">
+                                
+                                <!-- ปุ่มเปิดใช้ไมค์ป้อนเสียงอันใหญ่โต เหมาะสำหรับผู้สูงอายุ -->
+                                <button type="button" id="btnVoice" class="bg-pastel-100 hover:bg-pastel-200 text-pastel-900 border-2 border-pastel-300 px-6 py-4 rounded-2xl text-lg font-extrabold flex justify-center items-center space-x-2 transition-all duration-150 focus:outline-none w-full sm:w-auto shrink-0" title="แตะเพื่อพูดภาษาไทย">
+                                    <span id="micEmoji" class="text-xl">🎙️</span>
+                                    <span id="micText">แตะเพื่อพูดชื่อสินค้า</span>
+                                </button>
+                            </div>
+
+                            <!-- Dropdown สินค้าแนะนำใบใหญ่ แตะเลือกง่ายมากสำหรับผู้สูงวัย -->
+                            <div id="suggestionBox" class="hidden absolute left-0 right-0 mt-2 max-h-52 overflow-y-auto bg-white border-2 border-pastel-200 rounded-2xl shadow-xl z-50 divide-y-2 divide-pastel-50">
+                                <!-- ใส่ข้อมูลผ่าน JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- จัดวางช่องข้อมูลแถวละสองช่องขนาดใหญ่พิเศษ (วันหมดอายุ และ ตำแหน่งที่เก็บ) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- ช่องที่ 1: วันหมดอายุ (ขนาดใหญ่ h-16) -->
+                            <div>
+                                <label class="block text-lg font-bold text-pastel-900 mb-2" for="productExpiry">
+                                    📅 วันหมดอายุบนสินค้า
+                                </label>
+                                <input type="date" id="productExpiry" required class="w-full h-16 px-5 text-lg rounded-2xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-extrabold bg-white text-pastel-900">
+                            </div>
+
+                            <!-- ช่องที่ 2: ตำแหน่งที่เก็บสินค้า (ขนาดใหญ่ h-16) -->
+                            <div>
+                                <label class="block text-lg font-bold text-pastel-900 mb-2" for="productLot">
+                                    📍 ตำแหน่งที่วาง / ที่เก็บ
+                                </label>
+                                <input type="text" id="productLot" placeholder="เช่น ชั้นวางหน้าร้าน, ตู้แช่เย็น..." class="w-full h-16 px-5 text-lg rounded-2xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-semibold bg-white text-pastel-900 placeholder-pastel-300 transition-all">
+                            </div>
+                        </div>
+
+                        <!-- ปุ่มเซฟรายการอันโตๆ สำหรับแตะในร้านค้าได้รวดเร็ว -->
+                        <button type="submit" class="w-full bg-pastel-500 hover:bg-pastel-600 text-white font-black py-5 px-6 rounded-3xl text-xl transition-all duration-150 shadow-md shadow-pastel-100 flex justify-center items-center space-x-2 border-b-4 border-pastel-700">
+                            <span>➕ บันทึกข้อมูลสินค้าใหม่</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ฝั่งขวา: แผนภูมิรูปวงกลมวิเคราะห์สัดส่วนวันหมดอายุ (Grid span 5) -->
+            <div class="lg:col-span-5 bg-white rounded-3xl p-6 shadow-sm border-2 border-pastel-100 flex flex-col justify-between min-h-[500px]">
+                <div class="text-center pb-4 border-b-2 border-pastel-50">
+                    <h2 class="text-xl font-extrabold text-pastel-900 flex items-center justify-center space-x-1.5">
+                        <span>📊 สัดส่วนวันหมดอายุสินค้า</span>
+                    </h2>
+                    <p class="text-xs text-pastel-500 font-semibold mt-1">วิเคราะห์สัดส่วนสินค้าในร้านแบ่งตามระดับความปลอดภัย</p>
+                </div>
+
+                <!-- ตัวบรรจุแผนภูมิ Chart.js -->
+                <div class="flex-1 flex items-center justify-center p-4 relative min-h-[300px]">
+                    <canvas id="expiryPieChart"></canvas>
+                </div>
+
+                <div class="text-center bg-pastel-50/50 p-3 rounded-2xl border border-pastel-100">
+                    <p class="text-xs font-bold text-pastel-600">
+                        💡 สัดส่วนข้อมูลแผนภูมิจะเปลี่ยนขยับตามการบันทึกของข้อมูลฝั่งซ้ายทันที
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- แถวล่างสุด: ส่วนแสดงรายการสินค้าคงคลังสะสมในร้านทั้งหมด -->
+        <div id="products-section" class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-2 border-pastel-100 flex flex-col min-h-[450px] scroll-mt-6">
+            
+            <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 border-b-2 border-pastel-50 pb-4 mb-4">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-pastel-900">📦 รายการสินค้าสะสมในร้าน</h2>
+                    <p class="text-sm text-pastel-500 font-medium">แตะปุ่มเพื่อกรองตามเงื่อนไข หรือใช้ปุ่มลิงก์ด้านบนสุดเพื่อคัดกรองแบบด่วน</p>
+                </div>
+
+                <!-- ปุ่มตัวเลือกกรองสินค้าอันใหญ่ แตะสะดวกไม่บดบัง ครอบคลุมทุกสัดส่วน -->
+                <div class="flex flex-wrap gap-2 bg-pastel-100 p-1.5 rounded-2xl w-full xl:w-auto">
+                    <button onclick="setFilter('all')" id="filter-all" class="flex-1 xl:flex-none text-xs px-4 py-3 rounded-xl font-extrabold bg-white text-pastel-900 shadow-sm transition border border-pastel-200">สินค้าทั้งหมด</button>
+                    <button onclick="setFilter('expired')" id="filter-expired" class="flex-1 xl:flex-none text-xs px-4 py-3 rounded-xl font-extrabold text-pastel-500 hover:bg-white/50 transition">🚨 หมดอายุแล้ว</button>
+                    <button onclick="setFilter('expiring')" id="filter-expiring" class="flex-1 xl:flex-none text-xs px-4 py-3 rounded-xl font-extrabold text-pastel-500 hover:bg-white/50 transition">⏳ 7 วัน</button>
+                    <button onclick="setFilter('expiring_15')" id="filter-expiring_15" class="flex-1 xl:flex-none text-xs px-4 py-3 rounded-xl font-extrabold text-pastel-500 hover:bg-white/50 transition">⚠️ 15 วัน</button>
+                    <button onclick="setFilter('safe')" id="filter-safe" class="flex-1 xl:flex-none text-xs px-4 py-3 rounded-xl font-extrabold text-pastel-500 hover:bg-white/50 transition">🟢 ปลอดภัย (>15 วัน)</button>
+                </div>
+            </div>
+
+            <!-- ช่องพิมพ์ค้นหาด่วนตัวหนังสือใหญ่ -->
+            <div class="relative mb-4">
+                <input type="text" id="searchTerm" oninput="renderProducts()" placeholder="🔍 ค้นหาสินค้าด่วนพิมพ์ตรงนี้... (เช่น นม, ขนมปัง, ตู้แช่)" class="w-full pl-12 pr-4 py-4 text-lg rounded-2xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-semibold bg-white text-pastel-900 placeholder-pastel-300">
+            </div>
+
+            <!-- รายการการ์ดสินค้า -->
+            <div id="productCardsContainer" class="space-y-4 max-h-[500px] overflow-y-auto no-scrollbar">
+                <!-- ข้อมูลสินค้าจะแสดงตรงนี้ -->
+            </div>
+
+            <!-- ป้ายเปล่าเมื่อไม่มีข้อมูล -->
+            <div id="noDataState" class="hidden flex flex-col items-center justify-center bg-white p-16 rounded-3xl border-2 border-pastel-50 text-center">
+                <span class="text-5xl mb-3">🥣</span>
+                <p class="text-lg font-bold text-pastel-900">ไม่พบรายการสินค้าที่ต้องการค้นหา</p>
+                <p class="text-sm text-pastel-400 mt-1">สามารถเริ่มต้นบันทึกข้อมูลสินค้าด้านบนได้ทันทีครับ</p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Modal ตั้งค่าการเชื่อมข้อมูลกับ Google Sheets ของร้านธนภรรุ่งเรือง -->
+    <div id="modalConfig" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pastel-900/50 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all duration-200 border-2 border-pastel-100">
+            
+            <div class="p-6 border-b-2 border-pastel-50 flex justify-between items-center bg-pastel-50">
+                <div>
+                    <h3 class="text-lg font-extrabold text-pastel-900">⚙️ การเชื่อมข้อมูลของร้านธนภรรุ่งเรือง</h3>
+                    <p class="text-xs text-pastel-500 mt-1">ระบบสำหรับผู้จัดการร้านเพื่อเชื่อมข้อมูลเข้า Google Sheets ส่วนกลาง</p>
+                </div>
+                <button id="btnCloseConfig" class="text-pastel-400 hover:text-pastel-600 p-2 rounded-xl hover:bg-pastel-100 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- คู่มือแบบสั้นเข้าใจง่ายเพื่อนำส่งข้อมูลร้านค้าขึ้นคลาวด์ -->
+            <div class="p-6 overflow-y-auto space-y-4 text-sm text-pastel-600 leading-relaxed">
+                
+                <div class="space-y-2">
+                    <label class="block text-sm font-extrabold text-pastel-900 uppercase" for="gasUrl">Google Apps Script Web App URL</label>
+                    <input type="url" id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-4 py-3 rounded-xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-semibold bg-pastel-50/30 text-pastel-900 text-xs">
+                </div>
+
+                <div class="flex space-x-2">
+                    <button id="btnSaveGas" class="flex-1 bg-pastel-500 hover:bg-pastel-600 text-white font-extrabold py-3 rounded-xl transition shadow-sm">
+                        เริ่มเชื่อมต่อข้อมูลร้านค้า
+                    </button>
+                    <button id="btnDisconnectGas" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-3 rounded-xl transition font-extrabold hidden">
+                        ตัดการเชื่อมโยงคลาวด์
+                    </button>
+                </div>
+
+                <div id="syncStatus" class="flex items-center space-x-2 p-3 bg-pastel-50 rounded-xl text-pastel-900">
+                    <span class="w-2.5 h-2.5 rounded-full bg-slate-400 block"></span>
+                    <span class="text-xs font-bold">สถานะของระบบ: จัดเก็บแบบส่วนตัวในบราวเซอร์เครื่องนี้</span>
+                </div>
+
+                <div class="border-t border-pastel-100 pt-4 space-y-2">
+                    <p class="font-extrabold text-pastel-900">💡 คู่มือคัดลอกสคริปต์ Google Sheets สำหรับร้านค้า:</p>
+                    <div class="relative">
+                        <pre class="bg-slate-900 text-emerald-400 p-3 rounded-xl font-mono text-[9px] overflow-x-auto max-h-[120px] leading-normal">
+function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+  var result = [];
+  for (var i = 1; i < data.length; i++) {
+    var row = {};
+    for (var j = 0; j < headers.length; j++) {
+      row[headers[j]] = data[i][j];
+    }
+    result.push(row);
+  }
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader("Access-Control-Allow-Origin", "*");
+}
+
+// ต้อนรับข้อมูลเข้าสู่ตาราง Google Sheet
+function doPost(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var param = JSON.parse(e.postData.contents);
+    sheet.appendRow([
+      param.id,
+      param.name,
+      param.category || '', // คอลัมน์หมวดหมู่สินค้า
+      param.lot || '',
+      param.quantity,
+      param.expiryDate,
+      new Date().toLocaleString('th-TH')
+    ]);
+    return ContentService.createTextOutput(JSON.stringify({status: "success"}))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeader("Access-Control-Allow-Origin", "*");
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({status: "error"}))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeader("Access-Control-Allow-Origin", "*");
+  }
+}
+                        </pre>
+                        <button onclick="copyToClipboardScript()" class="absolute top-2 right-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] py-1 px-2.5 rounded-lg border border-slate-700">คัดลอกโค้ด</button>
+                    </div>
+                    <p class="text-[11px] text-pastel-400">วิธีติดตั้ง: สร้าง Google Sheet คอลัมน์แถวที่ 1 ตั้งแต่คอลัมน์ A ถึง G ด้วยหัวตารางต่อไปนี้: <br><strong class="text-pastel-700 font-mono">id | name | category | lot | quantity | expiryDate | addedAt</strong> และนำรหัสสคริปต์ด้านบนไปติดตั้งลงในส่วน Extensions > Apps Script และกดจัดทำเป็น Web App ให้สิทธิ์การเข้าถึงเป็น Everyone (ทุกคน) แล้วนำมาเชื่อมต่อที่กล่องด้านบนครับ</p>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t-2 border-pastel-50 bg-pastel-50 flex justify-end">
+                <button id="btnCloseConfigPrimary" class="bg-pastel-500 hover:bg-pastel-600 text-white text-sm font-extrabold py-2.5 px-5 rounded-xl transition">บันทึกและปิดหน้าจอ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- แผงแจ้งเตือนสำหรับผู้สูงอายุ Toast ตัวหนาใหญ่เป้งชัดเจน -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center bg-slate-900/95 backdrop-blur-md text-white px-6 py-4 rounded-2xl shadow-xl space-x-3 transform translate-y-28 opacity-0 transition-all duration-300 w-[90%] max-w-md border-2 border-pastel-300">
+        <span id="toastIcon" class="text-xl">🏪</span>
+        <span id="toastText" class="text-sm font-bold">แจ้งข้อความเตือนให้รับรู้</span>
+    </div>
+
+    <!-- ระบบ JavaScript ประมวลผล -->
+    <script>
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'senior-expiry-thanaphat-app';
+
+        // ฐานข้อมูลตัวเลือกสินค้าของร้านค้า
+        const presetSuggestions = [
+            { name: "นมจืดเมจิ (Meiji)" },
+            { name: "นมเปรี้ยวดัชมิลล์รสสตรอว์เบอร์รี่" },
+            { name: "โยเกิร์ตดัชชี่ รสธรรมชาติ" },
+            { name: "เนยเค็มออร์คิด (Orchid)" },
+            
+            { name: "ขนมปังแผ่นฟาร์มเฮ้าส์" },
+            { name: "เค้กกล้วยหอมทองเลอแปง" },
+            { name: "ครัวซองต์เนยสดอบชีสแผ่น" },
+
+            { name: "อกไก่สด CP" },
+            { name: "เนื้อหมูสับอนามัยเบทาโกร" },
+            { name: "ไข่ไก่สด 10 ฟองเบอร์ 2" },
+            { name: "เต้าหู้ไข่หลอดตรานางพยาบาล" },
+
+            { name: "ไส้กรอกรมควันหนังกรอบ CP" },
+            { name: "แฮมแผ่นสไลด์แซนด์วิช CP" },
+            { name: "ลูกชิ้นปลาต้มสุกเยาวราช" },
+            { name: "ปลากระป๋องสามแม่ครัว" },
+
+            { name: "ผักกาดขาวพร้อมต้มล้างสะอาด" },
+            { name: "มะเขือเทศเชอร์รี่ล้างสะอาด" },
+            { name: "แอปเปิ้ลฟูจินำเข้าหวานฉ่ำ" },
+
+            { name: "ยาลดไข้ ซาร่าพาราเซตามอล" },
+            { name: "ยาแก้ไอน้ำดำตราเสือดาว" },
+            { name: "วิตามินซีแบลคมอร์ส 1000 มก." }
+        ];
+
+        let products = [];
+        let currentFilter = 'all';
+        let gasUrl = '';
+        let isVoiceRecording = false;
+        let voiceRecognition = null;
+        let expiryPieChart = null; // อ้างอิงตัวแปรเก็บแผนภูมิวงกลม
+
+        // อ้างอิง HTML Components
+        const productForm = document.getElementById('productForm');
+        const productName = document.getElementById('productName');
+        const btnVoice = document.getElementById('btnVoice');
+        const micEmoji = document.getElementById('micEmoji');
+        const micText = document.getElementById('micText');
+        const suggestionBox = document.getElementById('suggestionBox');
+        const productLot = document.getElementById('productLot');
+        const productExpiry = document.getElementById('productExpiry');
+
+        const productCardsContainer = document.getElementById('productCardsContainer');
+        const noDataState = document.getElementById('noDataState');
+
+        const statExpiring = document.getElementById('statExpiring');
+        const statExpiring15 = document.getElementById('statExpiring15');
+        const statExpired = document.getElementById('statExpired');
+        const statSafe = document.getElementById('statSafe');
+
+        const modalConfig = document.getElementById('modalConfig');
+        const btnOpenConfig = document.getElementById('btnOpenConfig');
+        const btnCloseConfig = document.getElementById('btnCloseConfig');
+        const btnCloseConfigPrimary = document.getElementById('btnCloseConfigPrimary');
+        const gasUrlInput = document.getElementById('gasUrl');
+        const btnSaveGas = document.getElementById('btnSaveGas');
+        const btnDisconnectGas = document.getElementById('btnDisconnectGas');
+        const syncStatus = document.getElementById('syncStatus');
+
+        // โหลดระบบเมื่อหน้าจอเสร็จสมบูรณ์
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUrl = localStorage.getItem(`${appId}_gasUrl`);
+            if (savedUrl) {
+                gasUrl = savedUrl;
+                gasUrlInput.value = savedUrl;
+                updateSyncUI(true);
+                fetchProductsFromCloud();
+            } else {
+                loadProductsLocally();
+                updateSyncUI(false);
+            }
+
+            setupAutocompleteSuggestions();
+            initSpeechRecognitionSystem();
+        });
+
+        // เปิด/ปิด Modal บันทึกตั้งค่า
+        btnOpenConfig.addEventListener('click', () => { modalConfig.classList.remove('hidden'); });
+        btnCloseConfig.addEventListener('click', () => { modalConfig.classList.add('hidden'); });
+        btnCloseConfigPrimary.addEventListener('click', () => { modalConfig.classList.add('hidden'); });
+
+        // บันทึกที่อยู่เชื่อมสเปรดชีต
+        btnSaveGas.addEventListener('click', () => {
+            const val = gasUrlInput.value.trim();
+            if (!val) {
+                showToastNotification("❌ โปรดใส่ URL Google Apps Script", "error");
+                return;
+            }
+            if (!val.startsWith('https://script.google.com/')) {
+                showToastNotification("❌ รูปแบบ URL ลิงก์ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง", "error");
+                return;
+            }
+
+            gasUrl = val;
+            localStorage.setItem(`${appId}_gasUrl`, gasUrl);
+            updateSyncUI(true);
+            showToastNotification("💾 บันทึกที่อยู่และเชื่อมต่อเสร็จสมบูรณ์!", "success");
+            fetchProductsFromCloud();
+        });
+
+        // ยกเลิกเชื่อมโยงคลาวด์
+        btnDisconnectGas.addEventListener('click', () => {
+            localStorage.removeItem(`${appId}_gasUrl`);
+            gasUrl = '';
+            gasUrlInput.value = '';
+            updateSyncUI(false);
+            loadProductsLocally();
+            showToastNotification("🔌 ตัดการเชื่อมโยงกับ Google Sheet สำเร็จแล้ว", "warning");
+        });
+
+        // ปรับแต่งการรายงานสัญลักษณ์เชื่อมคลาวด์
+        function updateSyncUI(isConnected) {
+            if (isConnected) {
+                btnDisconnectGas.classList.remove('hidden');
+                syncStatus.className = "flex items-center space-x-2.5 p-4 bg-pastel-100 rounded-2xl text-pastel-900 border border-pastel-200";
+                syncStatus.innerHTML = `
+                    <span class="w-3.5 h-3.5 rounded-full bg-pastel-500 animate-pulse block"></span>
+                    <span class="text-sm font-extrabold">สถานะ: เชื่อมต่อเก็บสถิติลง Google Sheet เรียบร้อยสดใหม่</span>
+                `;
+            } else {
+                btnDisconnectGas.classList.add('hidden');
+                syncStatus.className = "flex items-center space-x-2.5 p-4 bg-slate-100 rounded-2xl text-slate-600 border border-slate-200";
+                syncStatus.innerHTML = `
+                    <span class="w-3.5 h-3.5 rounded-full bg-slate-400 block"></span>
+                    <span class="text-sm font-bold">สถานะ: บันทึกออฟไลน์ในเครื่องนี้เท่านั้น</span>
+                `;
+            }
+        }
+
+        // ดึงข้อมูลสินค้าของคลังที่จำลองในเครื่อง
+        function loadProductsLocally() {
+            const stored = localStorage.getItem(`${appId}_products`);
+            if (stored) {
+                try {
+                    products = JSON.parse(stored);
+                } catch(e) {
+                    products = [];
+                }
+            } else {
+                // ดึงสินค้าตัวอย่างลำดับที่ 4 กลับมาเพื่อความสมบูรณ์ในการแสดงผลลัพธ์บน Chart.js
+                products = [
+                    { id: "MOCK-1", name: "นมจืดเมจิ (ขวดใหญ่)", lot: "ตู้แช่หน้าร้าน", quantity: 1, expiryDate: createOffsetDateString(4) },
+                    { id: "MOCK-2", name: "ขนมปังแถวโฮลวีตสไลด์", lot: "ชั้นวางขนมปัง", quantity: 1, expiryDate: createOffsetDateString(-2) },
+                    { id: "MOCK-3", name: "ยาลดไข้พาราเซตามอล ซาร่า", lot: "ตู้ยาใกล้เคาน์เตอร์", quantity: 1, expiryDate: createOffsetDateString(12) },
+                    { id: "MOCK-4", name: "เครื่องดื่มเกลือแร่สปอนเซอร์", lot: "ชั้นวางเครื่องดื่ม", quantity: 1, expiryDate: createOffsetDateString(20) }
+                ];
+                saveProductsLocally();
+            }
+            renderProducts();
+        }
+
+        function saveProductsLocally() {
+            localStorage.setItem(`${appId}_products`, JSON.stringify(products));
+        }
+
+        // โหลดรายการสินค้าจาก Sheet (GET)
+        async function fetchProductsFromCloud() {
+            if (!gasUrl) return;
+            showToastNotification("🔄 กำลังดึงรายการของใหม่สุดจาก Google Sheet...", "info");
+
+            try {
+                const response = await fetch(gasUrl);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (Array.isArray(data)) {
+                        products = data.map(item => ({
+                            id: item.id || 'PROD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+                            name: item.name,
+                            lot: item.lot || '',
+                            quantity: Number(item.quantity) || 1,
+                            expiryDate: item.expiryDate ? formatToStandardDate(item.expiryDate) : ''
+                        })).filter(item => item.name);
+
+                        saveProductsLocally();
+                        renderProducts();
+                        showToastNotification("✅ อัปเดตตารางของจากสเปรดชีตสำเร็จแล้ว!", "success");
+                    }
+                }
+            } catch(e) {
+                console.error(e);
+                showToastNotification("⚠️ การซิงค์ออนไลน์ไม่สำเร็จ กำลังเปิดโหมดบันทึกออฟไลน์ทดแทน", "warning");
+                loadProductsLocally();
+            }
+        }
+
+        // เพิ่มรายการเข้าไปในสเปรดชีต (POST)
+        async function postProductToCloud(product) {
+            if (!gasUrl) return true;
+            showToastNotification("☁️ ส่งคำสั่งบันทึกไปยัง Google Sheet...", "info");
+
+            try {
+                await fetch(gasUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(product)
+                });
+                showToastNotification("✅ เพิ่มสินค้าและอัปเดตลง Google Sheet สำเร็จ!", "success");
+                return true;
+            } catch(e) {
+                console.error(e);
+                showToastNotification("❌ ส่งบันทึกข้อมูลออนไลน์ล้มเหลว", "error");
+                return false;
+            }
+        }
+
+        // ระบบแปลคำพูดจากไมโครโฟนภาษาไทย (Web Speech API)
+        function initSpeechRecognitionSystem() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                btnVoice.addEventListener('click', () => {
+                    showToastNotification("❌ ไมค์บันทึกเสียงไม่สนับสนุนบนเว็บบราวเซอร์ของคุณ โปรดใช้ Chrome หรือ Safari ครับ", "error");
+                });
+                return;
+            }
+
+            voiceRecognition = new SpeechRecognition();
+            voiceRecognition.lang = 'th-TH'; // ภาษาไทย
+            voiceRecognition.interimResults = false;
+            voiceRecognition.maxAlternatives = 1;
+
+            voiceRecognition.onstart = () => {
+                isVoiceRecording = true;
+                btnVoice.classList.add('mic-active-glow');
+                micEmoji.textContent = "🔴";
+                micText.textContent = "กำลังฟังท่านพูดอยู่...";
+                showToastNotification("🎙️ กำลังฟังเสียง... กรุณาพูดชื่อสินค้า เช่น 'นมเปรี้ยวดัชมิลล์'", "info");
+            };
+
+            voiceRecognition.onresult = (e) => {
+                const speechToText = e.results[0][0].transcript;
+                productName.value = speechToText;
+                showToastNotification(`🎙️ ตรวจพบคำพูด: "${speechToText}"`, "success");
+
+                // กระตุ้นระบบให้ค้นหาคำแนะนำต่อทันที
+                const event = new Event('input', { bubbles: true });
+                productName.dispatchEvent(event);
+                productName.focus();
+            };
+
+            voiceRecognition.onerror = (e) => {
+                console.error(e);
+                showToastNotification("❌ รับคำพูดขัดข้อง กรุณากดพูดใหมีกว่าเดิมนะครับ", "error");
+                stopVoiceRecordingUI();
+            };
+
+            voiceRecognition.onend = () => {
+                stopVoiceRecordingUI();
+            };
+
+            btnVoice.addEventListener('click', () => {
+                if (isVoiceRecording) {
+                    voiceRecognition.stop();
+                } else {
+                    voiceRecognition.start();
+                }
+            });
+        }
+
+        function stopVoiceRecordingUI() {
+            isVoiceRecording = false;
+            btnVoice.classList.remove('mic-active-glow');
+            micEmoji.textContent = "🎙️";
+            micText.textContent = "แตะเพื่อพูดชื่อสินค้า";
+        }
+
+        // ฟังก์ชันระบบกรอกสินค้าแนะนำใบโต (Autocomplete Suggestions)
+        function setupAutocompleteSuggestions() {
+            productName.addEventListener('input', () => {
+                const val = productName.value.trim().toLowerCase();
+                if (!val) {
+                    suggestionBox.classList.add('hidden');
+                    return;
+                }
+
+                // คัดกรองของแนะนำที่ตรงกับอักษรภาษาไทย
+                const matched = presetSuggestions.filter(item => 
+                    item.name.toLowerCase().includes(val)
+                );
+
+                if (matched.length === 0) {
+                    suggestionBox.classList.add('hidden');
+                    return;
+                }
+
+                renderSuggestions(matched);
+            });
+
+            // ตรวจจับกดคลิกภายนอกเพื่อปิดกล่องแนะนำ
+            document.addEventListener('click', (e) => {
+                if (!productName.contains(e.target) && !suggestionBox.contains(e.target) && !btnVoice.contains(e.target)) {
+                    suggestionBox.classList.add('hidden');
+                }
+            });
+        }
+
+        // แสดงสัญลักษณ์ปุ่มแนะนำใบโต แตะสัมผัสสะดวกที่สุด
+        function renderSuggestions(items) {
+            suggestionBox.innerHTML = '';
+            suggestionBox.classList.remove('hidden');
+
+            items.forEach(item => {
+                const buttonDiv = document.createElement('div');
+                buttonDiv.className = "px-5 py-4 hover:bg-pastel-50 cursor-pointer flex justify-between items-center transition duration-150 text-base text-pastel-900 border-b border-pastel-50";
+                buttonDiv.innerHTML = `
+                    <span class="font-extrabold text-lg">${escapeHtmlString(item.name)}</span>
+                `;
+
+                // เมื่อทำการแตะตัวเลือกแนะนำ
+                buttonDiv.addEventListener('click', () => {
+                    productName.value = item.name;
+                    suggestionBox.classList.add('hidden');
+                    showToastNotification("🎯 เลือกใส่ข้อมูลเรียบร้อยแล้วครับ", "info");
+                });
+
+                suggestionBox.appendChild(buttonDiv);
+            });
+        }
+
+        // คำนวณวันหมดอายุคงเหลือ
+        function calculateDaysRemaining(expiryStr) {
+            if (!expiryStr) return 999;
+            const target = new Date(expiryStr);
+            target.setHours(0,0,0,0);
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            const diff = target.getTime() - today.getTime();
+            return Math.ceil(diff / (1000 * 60 * 60 * 24));
+        }
+
+        // จัดหมวดคลังคัดกรอง All / Expired / Expiring (7 วัน) / Expiring_15 (15 วัน) / Safe (>15 วัน)
+        function setFilter(type) {
+            currentFilter = type;
+            const filterArray = ['all', 'expired', 'expiring', 'expiring_15', 'safe'];
+
+            filterArray.forEach(f => {
+                const btn = document.getElementById(`filter-${f}`);
+                if (!btn) return;
+                if (f === type) {
+                    btn.className = "flex-1 xl:flex-none text-xs px-4 py-3 rounded-xl font-extrabold bg-white text-pastel-900 shadow-sm transition border border-pastel-200";
+                } else {
+                    btn.className = "flex-1 xl:flex-none text-xs px-4 py-3 rounded-xl font-extrabold text-pastel-500 hover:bg-white/50 transition";
+                }
+            });
+
+            renderProducts();
+        }
+
+        // พิเศษ: ฟังก์ชันสลับตัวกรองสถานะ และเลื่อนหน้าจอลงไปดูรายการทันที
+        function setFilterAndScroll(type) {
+            setFilter(type);
+            const section = document.getElementById('products-section');
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            
+            let label = '';
+            if (type === 'all') label = 'สินค้าทั้งหมด';
+            if (type === 'expired') label = 'สินค้าหมดอายุแล้ว';
+            if (type === 'expiring') label = 'สินค้าวิกฤต (1-7 วัน)';
+            if (type === 'expiring_15') label = 'สินค้าเฝ้าระวัง (8-15 วัน)';
+            if (type === 'safe') label = 'สินค้ายังปลอดภัยปกติ';
+            showToastNotification(`🔎 แสดงเฉพาะ: ${label}`, "success");
+        }
+
+        // ฟังก์ชันอัปเดตหรือสร้างแผนภูมิวงกลม (Pie Chart) แบบมินิมอลพาสเทล
+        function updatePieChart(expired, expiring, expiring15, safe) {
+            const ctx = document.getElementById('expiryPieChart').getContext('2d');
+            const chartData = [expired, expiring, expiring15, safe];
+            const total = chartData.reduce((a, b) => a + b, 0);
+
+            // หากเคยสร้างแผนภูมิไว้แล้ว ให้ทำการอัปเดตข้อมูลเพื่อให้แสดงผลได้ลื่นไหล
+            if (expiryPieChart) {
+                expiryPieChart.data.datasets[0].data = chartData;
+                expiryPieChart.update();
+            } else {
+                // เริ่มต้นสร้างแผนภูมิวงกลมตัวใหม่พร้อมสีและตัวอักษรขนาดใหญ่อ่านง่าย
+                expiryPieChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['หมดอายุแล้ว', 'วิกฤต (1-7 วัน)', 'เฝ้าระวัง (8-15 วัน)', 'ยังปลอดภัยอยู่'],
+                        datasets: [{
+                            data: chartData,
+                            backgroundColor: [
+                                '#fee2e2', // แดงพาสเทลอ่อน (Expired)
+                                '#fef3c7', // ส้มพาสเทลอ่อน (1-7 วัน)
+                                '#fffbeb', // เหลืองพาสเทลอ่อน (8-15 วัน)
+                                '#e1f7eb'  // เขียวพาสเทลอ่อน (Safe)
+                            ],
+                            borderColor: [
+                                '#ef4444', // แดงเข้ม
+                                '#f59e0b', // ส้มเข้ม
+                                '#eab308', // เหลืองเข้ม
+                                '#3fa370'  // มิ้นต์เขียวหลัก
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    font: {
+                                        family: 'Sarabun',
+                                        size: 14,
+                                        weight: 'bold'
+                                    },
+                                    color: '#143d28', // สีข้อความ pastel-900
+                                    padding: 15
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const value = context.raw;
+                                        const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return ` ${context.label}: ${value} รายการ (${pct}%)`;
+                                    }
+                                },
+                                titleFont: { family: 'Sarabun', size: 14 },
+                                bodyFont: { family: 'Sarabun', size: 14 }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // แสดงผลรายการแบบการ์ดขนาดใหญ่ (Aged-Friendly List Card Render)
+        function renderProducts() {
+            productCardsContainer.innerHTML = '';
+            const search = document.getElementById('searchTerm').value.toLowerCase().trim();
+
+            let filteredList = products;
+
+            // ตรวจกรองชื่อค้นหา
+            if (search) {
+                filteredList = filteredList.filter(item => 
+                    item.name.toLowerCase().includes(search) ||
+                    (item.lot && item.lot.toLowerCase().includes(search))
+                );
+            }
+
+            // ตรวจกรองตามประเภทป้ายสถานะ
+            if (currentFilter === 'expiring') {
+                filteredList = filteredList.filter(item => {
+                    const days = calculateDaysRemaining(item.expiryDate);
+                    return days > 0 && days <= 7;
+                });
+            } else if (currentFilter === 'expiring_15') {
+                filteredList = filteredList.filter(item => {
+                    const days = calculateDaysRemaining(item.expiryDate);
+                    return days > 7 && days <= 15; // แสดงสินค้าเฉพาะ เฝ้าระวัง 8-15 วันพอดีตามหัวข้อ
+                });
+            } else if (currentFilter === 'expired') {
+                filteredList = filteredList.filter(item => {
+                    const days = calculateDaysRemaining(item.expiryDate);
+                    return days <= 0;
+                });
+            } else if (currentFilter === 'safe') {
+                filteredList = filteredList.filter(item => {
+                    const days = calculateDaysRemaining(item.expiryDate);
+                    return days > 15; // สินค้ายังปลอดภัยอยู่อย่างมั่นใจ (>15 วัน)
+                });
+            }
+
+            // คำนวณยอดหน้า Dashboard & อัปเดตสถิติแผนภูมิรูปวงกลม
+            updateStatisticsCounter();
+
+            if (filteredList.length === 0) {
+                noDataState.classList.remove('hidden');
+                return;
+            }
+
+            noDataState.classList.add('hidden');
+
+            filteredList.forEach(item => {
+                const days = calculateDaysRemaining(item.expiryDate);
+                let badgeStyle = '';
+                let textStatus = '';
+                let containerColorBorder = '';
+
+                if (days <= 0) {
+                    badgeStyle = 'bg-rose-100 text-rose-800 border-rose-300';
+                    textStatus = days === 0 ? 'หมดอายุแล้ววันนี้!' : `🚨 หมดอายุแล้ว (${Math.abs(days)} วัน)`;
+                    containerColorBorder = 'border-rose-300 bg-rose-50/20';
+                } else if (days <= 7) {
+                    badgeStyle = 'bg-amber-100 text-amber-800 border-amber-300 animate-pulse';
+                    textStatus = `⏳ วิกฤต! เหลืออีก ${days} วัน`;
+                    containerColorBorder = 'border-amber-300 bg-[#fffdf5]';
+                } else if (days <= 15) {
+                    badgeStyle = 'bg-yellow-100 text-yellow-800 border-yellow-300';
+                    textStatus = `⚠️ เฝ้าระวัง! เหลืออีก ${days} วัน`;
+                    containerColorBorder = 'border-yellow-200 bg-[#fffdf0]';
+                } else {
+                    badgeStyle = 'bg-pastel-100 text-pastel-800 border-pastel-300';
+                    textStatus = `🟢 ปลอดภัยดี (เหลือ ${days} วัน)`;
+                    containerColorBorder = 'border-pastel-200 bg-pastel-50/20';
+                }
+
+                // สร้างการ์ดใบใหญ่ ตัวอักษรหนาอ่านชัด เพื่ออำนวยความสะดวกสายตาผู้ใช้ทั่วไปและผู้สูงวัย
+                const card = document.createElement('div');
+                card.className = `p-5 rounded-3xl border-2 ${containerColorBorder} flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all duration-150 shadow-sm bg-white`;
+                
+                card.innerHTML = `
+                    <div class="flex-1 space-y-2">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-xl font-extrabold text-pastel-900">${escapeHtmlString(item.name)}</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold border ${badgeStyle}">${textStatus}</span>
+                        </div>
+                        <div class="text-sm font-bold text-pastel-50 flex flex-wrap items-center gap-3">
+                            ${item.lot ? `<span class="bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-lg text-xs font-bold">📍 ที่วาง: ${escapeHtmlString(item.lot)}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between w-full md:w-auto border-t-2 border-pastel-50 md:border-0 pt-3 md:pt-0">
+                        <div class="md:text-right pr-4">
+                            <span class="block text-xs font-bold text-pastel-400">วันหมดอายุ</span>
+                            <span class="text-base font-extrabold text-pastel-900">${formatDateThaiString(item.expiryDate)}</span>
+                        </div>
+                        <!-- ปุ่มแตะลบแบบใบโต เพื่อให้เล็งแตะได้ง่ายที่สุด -->
+                        <button onclick="deleteProductItem('${item.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border-2 border-rose-200 font-extrabold px-5 py-3 rounded-2xl text-sm flex items-center space-x-1 transition-all" title="ลบข้อมูล">
+                            <span>🗑️ แตะเพื่อลบ</span>
+                        </button>
+                    </div>
+                `;
+                
+                productCardsContainer.appendChild(card);
+            });
+        }
+
+        // ดำเนินการลบสินค้า
+        function deleteProductItem(id) {
+            products = products.filter(item => item.id !== id);
+            saveProductsLocally();
+            renderProducts();
+            showToastNotification("🗑️ ทำการลบสินค้าชิ้นนี้ออกเรียบร้อยแล้ว", "warning");
+        }
+
+        // เพิ่มบันทึกข้อมูลสินค้าล็อตใหม่
+        productForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = productName.value.trim();
+            const lot = productLot.value.trim();
+            const expiry = productExpiry.value;
+
+            if (!name || !expiry) {
+                showToastNotification("❌ กรุณาตรวจสอบการกรอกข้อมูลให้สมบูรณ์", "error");
+                return;
+            }
+
+            const newProductObj = {
+                id: 'PROD-' + Date.now().toString(36).toUpperCase(),
+                name: name,
+                category: '', // ส่งค่าว่าง เพื่อรักษาโครงสร้าง Google Sheets เดิมไม่ให้คอลัมน์คลาดเคลื่อน
+                lot: lot,
+                quantity: 1,  // กำหนดจำนวนสินค้าเริ่มต้นเป็น 1 เสมอเนื่องจากตัดช่องกรอกออกแล้ว
+                expiryDate: expiry
+            };
+
+            // ออฟไลน์บันทึกลงตัวเครื่องล่วงหน้า
+            products.unshift(newProductObj);
+            saveProductsLocally();
+
+            // ส่งข้อมูลไปยัง Google Sheet ทันที
+            const completeSync = await postProductToCloud(newProductObj);
+
+            if (completeSync) {
+                productForm.reset();
+                renderProducts();
+            } else {
+                renderProducts();
+            }
+        });
+
+        // อัปเดตสถิติ Dashboard ทั่วคลังแยกช่วงวันชัดเจน และส่งข้อมูลซิงค์ให้แผนภูมิวงกลม
+        function updateStatisticsCounter() {
+            let total = products.length;
+            let expiring = 0;
+            let expiring15 = 0;
+            let expired = 0;
+            let safe = 0;
+
+            products.forEach(item => {
+                const days = calculateDaysRemaining(item.expiryDate);
+                if (days <= 0) {
+                    expired++;
+                } else if (days <= 7) {
+                    expiring++;
+                } else if (days <= 15) {
+                    expiring15++;
+                } else {
+                    safe++;
+                }
+            });
+
+            // อัปเดตจำนวนในการทำงานของ UI
+            statExpiring.textContent = expiring;
+            statExpiring15.textContent = expiring15;
+            statExpired.textContent = expired;
+            statSafe.textContent = safe;
+
+            // วาดหรืออัปเดตข้อมูลบนแผนภูมิรูปวงกลม
+            updatePieChart(expired, expiring, expiring15, safe);
+        }
+
+        // แสดงแจ้งเตือน ตัวใหญ่เบิ้ม ชัดถนัดตา (Senior Toast Alert)
+        function showToastNotification(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastText = document.getElementById('toastText');
+
+            toastText.textContent = message;
+
+            if (type === 'success') {
+                toastIcon.textContent = '🍃';
+                toast.className = "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center bg-emerald-600 text-white px-6 py-5 rounded-3xl shadow-2xl space-x-3 transition-all duration-300 transform translate-y-0 opacity-100 w-[90%] max-w-md border-2 border-emerald-300 font-extrabold text-lg text-center justify-center";
+            } else if (type === 'error') {
+                toastIcon.textContent = '🥀';
+                toast.className = "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center bg-rose-950 text-rose-100 px-6 py-5 rounded-3xl shadow-2xl space-x-3 transition-all duration-300 transform translate-y-0 opacity-100 w-[90%] max-w-md border-2 border-rose-800 font-extrabold text-lg text-center justify-center";
+            } else if (type === 'warning') {
+                toastIcon.textContent = '⚠️';
+                toast.className = "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center bg-amber-500 text-slate-950 px-6 py-5 rounded-3xl shadow-2xl space-x-3 transition-all duration-300 transform translate-y-0 opacity-100 w-[90%] max-w-md border-2 border-amber-200 font-black text-lg text-center justify-center";
+            } else {
+                toastIcon.textContent = '🏪';
+                toast.className = "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center bg-pastel-900 text-white px-6 py-5 rounded-3xl shadow-2xl space-x-3 transition-all duration-300 transform translate-y-0 opacity-100 w-[90%] max-w-md border-2 border-pastel-300 font-extrabold text-lg text-center justify-center";
+            }
+
+            // ซ่อนการแจ้งเตือนหลังจากผ่านไป 4 วินาที (เพื่อให้ผู้สูงอายุอ่านทัน)
+            setTimeout(() => {
+                toast.className = "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-xl space-x-3 transform translate-y-28 opacity-0 transition-all duration-300 w-[90%] max-w-md";
+            }, 4000);
+        }
+
+        // ฟังก์ชันเสริม: แปลงวันที่ พ.ศ. ของไทย แบบอ่านออกเสียงง่าย
+        function formatDateThaiString(dateStr) {
+            if (!dateStr) return 'ไม่ได้ลงระบุไว้';
+            const date = new Date(dateStr);
+            const months = [
+                'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+                'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+            ];
+            return `${date.getDate()} ${months[date.getMonth()]} พ.ศ. ${date.getFullYear() + 543}`;
+        }
+
+        function formatToStandardDate(rawDate) {
+            try {
+                const date = new Date(rawDate);
+                if (isNaN(date.getTime())) return '';
+                return date.toISOString().split('T')[0];
+            } catch(e) {
+                return '';
+            }
+        }
+
+        // คำนวณวันที่ห่างออกไปเพื่อแสดงเดโม
+        function createOffsetDateString(daysOffset) {
+            const date = new Date();
+            date.setDate(date.getDate() + daysOffset);
+            return date.toISOString().split('T')[0];
+        }
+
+        // คัดลอกรหัส Apps Script
+        function copyToClipboardScript() {
+            const pre = document.querySelector('#modalConfig pre');
+            const textarea = document.createElement('textarea');
+            textarea.value = pre.innerText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToastNotification("📋 คัดลอกรหัสสคริปต์ Google Sheets แล้ว!", "success");
+        }
+
+        // ฟิลเตอร์ป้องกันปัญหาอักขระพิเศษรบกวน HTML
+        function escapeHtmlString(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text ? String(text).replace(/[&<>"']/g, m => map[m]) : '';
+        }
+    </script>
+</body>
+</html>
+
