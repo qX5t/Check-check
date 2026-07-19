@@ -733,16 +733,9 @@ function doPost(e) {
                         body: JSON.stringify({ action: "delete", id: id })
                     });
                     
-                    showToastNotification("🗑️ ลบสินค้าออกจากคลาวด์และทุกเครื่องเรียบร้อยแล้ว", "warning");
+                    showToastNotification("🗑️ ลบสินค้าเรียบร้อยแล้ว", "warning");
                     
-                    // ดึงข้อมูลใหม่เพื่อความชัวร์หลังจากส่ง
-                    setTimeout(() => fetchDataFromGoogleSheet(true), 1500);
-                } catch(e) {
-                    console.error("Delete from Google Sheet failed:", e);
-                    showToastNotification("❌ การลบสินค้าบนคลาวด์ขัดข้อง", "error");
-                    fetchDataFromGoogleSheet(true); // ลองดึงใหม่เพื่อคืนค่าเดิม
-                }
-            } else {
+                   
                 // ลบออฟไลน์
                 products = products.filter(item => item.id !== id);
                 saveProductsLocally();
@@ -751,54 +744,6 @@ function doPost(e) {
             }
         };
 
-        // เพิ่มบันทึกข้อมูลสินค้า (เขียนขึ้น Google Sheets / Local Storage)
-        productForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const name = productName.value.trim();
-            const expiry = productExpiry.value;
-
-            if (!name || !expiry) {
-                showToastNotification("❌ กรุณาตรวจสอบการกรอกข้อมูลให้สมบูรณ์", "error");
-                return;
-            }
-
-            const newProductObj = {
-                id: 'PROD-' + Date.now().toString(36).toUpperCase(),
-                name: name,
-                category: '',
-                lot: '',      
-                quantity: 1,  // กำหนดจำนวนสินค้าเริ่มต้นเป็น 1 เสมอเนื่องจากตัดช่องกรอกออกแล้ว
-                expiryDate: expiry
-            };
-
-            if (gasUrl) {
-                showToastNotification("☁️ กำลังบันทึกสินค้าใหม่ขึ้น Google Sheets...", "info");
-                
-                // เขียนเข้าอาร์เรย์เครื่องนี้เพื่อให้แสดงผลทันใจล่วงหน้า
-                products.unshift(newProductObj);
-                renderProducts();
-
-                try {
-                    // ส่งคำสั่งเพิ่มแถวไปยัง Google Sheets
-                    await fetch(gasUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: "add", ...newProductObj })
-                    });
-
-                    showToastNotification("✨ บันทึกสินค้าสำเร็จ และจะซิงค์ไปเครื่องอื่น ๆ ทันที", "success");
-                    productForm.reset();
-
-                    // ดึงข้อมูลใหม่หลังจากส่งสำเร็จ
-                    setTimeout(() => fetchDataFromGoogleSheet(true), 1500);
-                } catch(e) {
-                    console.error("Add Google Sheet error:", e);
-                    showToastNotification("❌ เชื่อมคลาวด์บันทึกไม่สำเร็จ", "error");
-                    fetchDataFromGoogleSheet(true);
-                }
-            } else {
                 // บันทึกแบบออฟไลน์
                 products.unshift(newProductObj);
                 saveProductsLocally();
