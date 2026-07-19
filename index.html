@@ -33,26 +33,50 @@
     }
 
     // ฟังก์ชันวาดรายการสินค้า (การ์ด)
-    function renderProducts() {
-        const container = document.getElementById('productCardsContainer');
-        container.innerHTML = '';
-        
-        products.forEach((item, index) => {
+  function renderProducts() {
+    const container = document.getElementById('productCardsContainer');
+    container.innerHTML = '';
+    
+    // 1. กรองข้อมูลตามหมวดหมู่ที่ถูกเลือก (currentFilter)
+    let displayList = products.filter(p => {
+        const days = calculateDaysRemaining(p.expiryDate);
+        if (currentFilter === 'expired') return days <= 0;
+        if (currentFilter === 'expiring') return days > 0 && days <= 7;
+        if (currentFilter === 'expiring_15') return days > 7 && days <= 15;
+        if (currentFilter === 'safe') return days > 15;
+        return true; // ถ้าเป็น 'all' ให้แสดงทั้งหมด
+    });
+
+    // 2. ถ้ามีข้อความในช่องค้นหา ให้กรองชื่อเพิ่ม
+    const search = document.getElementById('searchTerm').value.toLowerCase();
+    displayList = displayList.filter(p => p.name.toLowerCase().includes(search));
+
+    // 3. วาดรายการสินค้า
+    if (displayList.length === 0) {
+        container.innerHTML = '<p class="text-center text-pastel-400 font-bold py-10">ไม่พบสินค้าในหมวดนี้</p>';
+    } else {
+        displayList.forEach((item, index) => {
             const days = calculateDaysRemaining(item.expiryDate);
             const card = document.createElement('div');
-            card.className = "p-5 rounded-3xl border-2 border-pastel-200 bg-white flex justify-between items-center shadow-sm";
+            // ใส่สีขอบตามหมวดหมู่
+            const borderClass = days <= 0 ? 'border-rose-300 bg-rose-50' : 
+                               days <= 7 ? 'border-amber-300 bg-amber-50' :
+                               days <= 15 ? 'border-yellow-200 bg-yellow-50' : 'border-pastel-200 bg-white';
+            
+            card.className = `p-5 rounded-3xl border-2 ${borderClass} flex justify-between items-center shadow-sm`;
             card.innerHTML = `
                 <div>
                     <div class="text-xl font-extrabold text-pastel-900">${item.name}</div>
-                    <div class="text-sm font-bold text-pastel-400">หมดอายุ: ${item.expiryDate}</div>
+                    <div class="text-sm font-bold text-pastel-500">หมดอายุ: ${item.expiryDate}</div>
                 </div>
-                <button onclick="deleteProductItem(${index})" class="bg-rose-50 text-rose-600 border-2 border-rose-200 font-extrabold px-5 py-3 rounded-2xl">ลบ</button>
+                <button onclick="deleteProductItem('${item.id}')" class="bg-white/50 text-rose-600 border-2 border-rose-200 font-extrabold px-5 py-3 rounded-2xl">ลบ</button>
             `;
             container.appendChild(card);
         });
-
-        updateStats(); // เรียกคำนวณเลขใหม่ทุกครั้งที่วาดการ์ด
     }
+
+    updateStats();
+}
 
     // ฟังก์ชันบันทึกข้อมูล
     document.getElementById('productForm').addEventListener('submit', (e) => {
