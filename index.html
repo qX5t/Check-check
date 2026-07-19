@@ -314,48 +314,7 @@ function doPost(e) {
 
     <!-- ระบบ JavaScript ประมวลผลและโมดูลเชื่อมข้อมูลคลาวด์ Google Sheets -->
     <script>
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'senior-expiry-thanaphat-app';
-
-        // สถานะข้อมูล
-        let products = [];
-        let currentFilter = 'all';
-        let gasUrl = '';
-        let isVoiceRecording = false;
-        let voiceRecognition = null;
-        let expiryPieChart = null;
-        let syncIntervalId = null; // ตัวแปรเก็บเวลาจับดึงข้อมูล Auto-Refresh
-
-    
-
-        // อ้างอิง HTML Components
-        const productForm = document.getElementById('productForm');
-        const productName = document.getElementById('productName');
-        const btnVoice = document.getElementById('btnVoice');
-        const micEmoji = document.getElementById('micEmoji');
-        const micText = document.getElementById('micText');
-        const suggestionBox = document.getElementById('suggestionBox');
-        const productExpiry = document.getElementById('productExpiry');
-
-        const productCardsContainer = document.getElementById('productCardsContainer');
-        const noDataState = document.getElementById('noDataState');
-
-        const statExpiring = document.getElementById('statExpiring');
-        const statExpiring15 = document.getElementById('statExpiring15');
-        const statExpired = document.getElementById('statExpired');
-        const statSafe = document.getElementById('statSafe');
-
-        const modalConfig = document.getElementById('modalConfig');
-        const btnOpenConfig = document.getElementById('btnOpenConfig');
-        const btnCloseConfig = document.getElementById('btnCloseConfig');
-        const btnCloseConfigPrimary = document.getElementById('btnCloseConfigPrimary');
-        const gasUrlInput = document.getElementById('gasUrl');
-        const btnSaveGas = document.getElementById('btnSaveGas');
-        const btnDisconnectGas = document.getElementById('btnDisconnectGas');
-        const syncStatus = document.getElementById('syncStatus');
-        const syncStatusText = document.getElementById('syncStatusText');
-        const syncPulse = document.getElementById('syncPulse');
-
-
+        
         // ดึงข้อมูลสินค้าของคลังที่จำลองในเครื่อง (กรณีออฟไลน์)
         function loadProductsLocally() {
             const stored = localStorage.getItem(`${appId}_products`);
