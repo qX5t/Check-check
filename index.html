@@ -1,160 +1,77 @@
-<!DOCTYPE html>
-<html lang="th" class="h-full bg-[#f4fcf7]">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ร้านธนภรรุ่งเรือง - ระบบเช็ควันหมดอายุสินค้าในร้าน</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        pastel: { 50: '#f0fbf5', 100: '#e1f7eb', 200: '#c2f0d5', 300: '#94e3b7', 400: '#5ecb90', 500: '#3fa370', 600: '#2d8256', 900: '#143d28' }
-                    },
-                    fontFamily: { sans: ['Sarabun', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        *, body, input, select, button, textarea, option { font-family: 'Sarabun', sans-serif !important; }
-        body { background-color: #f4fcf7; font-size: 1.125rem; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-    </style>
-</head>
-<body class="h-full flex flex-col text-pastel-900 antialiased">
+<script>
+    const appId = 'my-shop-data';
+    let products = JSON.parse(localStorage.getItem(appId)) || [];
 
-    <header class="bg-white border-b-2 border-pastel-100 sticky top-0 z-30 shadow-sm py-4">
-        <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
-            <div class="flex items-center space-x-3.5">
-                <div class="bg-pastel-100 p-3 rounded-2xl"><span class="text-3xl">🏪</span></div>
-                <div>
-                    <h1 class="text-2xl font-extrabold tracking-tight text-pastel-900">ร้านธนภรรุ่งเรือง</h1>
-                    <p class="text-sm font-semibold text-pastel-500">ระบบเช็ควันหมดอายุสินค้าในร้าน</p>
-                </div>
-            </div>
-        </div>
-    </header>
+    // ฟังก์ชันคำนวณวันคงเหลือ
+    function calculateDaysRemaining(expiryStr) {
+        if (!expiryStr) return 999;
+        const target = new Date(expiryStr);
+        target.setHours(0,0,0,0);
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        return Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+    }
 
-    <main class="flex-1 max-w-5xl w-full mx-auto p-4 space-y-6 pb-20">
-        <!-- กล่องสถิติ -->
-        <div class="grid grid-cols-2 gap-6 max-w-5xl mx-auto">
-            <div onclick="setFilterAndScroll('expired')" class="bg-[#fff5f5] hover:bg-[#fee2e2] cursor-pointer p-6 rounded-3xl border-2 border-rose-200 flex flex-col items-center">
-                <span class="font-extrabold text-rose-700">หมดอายุแล้ว!</span>
-                <span id="statExpired" class="text-5xl font-black text-rose-600 mt-2">0</span>
-            </div>
-            <div onclick="setFilterAndScroll('expiring')" class="bg-[#fffbeb] hover:bg-[#fef3c7] cursor-pointer p-6 rounded-3xl border-2 border-amber-200 flex flex-col items-center">
-                <span class="font-extrabold text-amber-700">วิกฤต (1-7 วัน)</span>
-                <span id="statExpiring" class="text-5xl font-black text-amber-600 mt-2">0</span>
-            </div>
-            <div onclick="setFilterAndScroll('expiring_15')" class="bg-[#fffdf0] hover:bg-[#fffbeb] cursor-pointer p-6 rounded-3xl border-2 border-yellow-200 flex flex-col items-center">
-                <span class="font-extrabold text-yellow-700">เฝ้าระวัง (8-15 วัน)</span>
-                <span id="statExpiring15" class="text-5xl font-black text-yellow-600 mt-2">0</span>
-            </div>
-            <div onclick="setFilterAndScroll('safe')" class="bg-pastel-50 hover:bg-pastel-100 cursor-pointer p-6 rounded-3xl border-2 border-pastel-200 flex flex-col items-center">
-                <span class="font-extrabold text-pastel-700">ยังปลอดภัย</span>
-                <span id="statSafe" class="text-5xl font-black text-pastel-600 mt-2">0</span>
-            </div>
-        </div>
-
-        <!-- ฟอร์มและกราฟ -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div class="lg:col-span-7 bg-white rounded-3xl p-8 border-2 border-pastel-100">
-                <h2 class="text-2xl font-extrabold mb-4">📝 บันทึกสินค้า</h2>
-                <form id="productForm" class="space-y-6">
-                    <input type="text" id="productName" required placeholder="ชื่อสินค้า..." class="w-full px-5 py-4 text-lg rounded-2xl border-2 border-pastel-200">
-                    <input type="date" id="productExpiry" required class="w-full h-16 px-5 text-lg rounded-2xl border-2 border-pastel-200">
-                    <button type="submit" class="w-full bg-pastel-500 text-white font-black py-5 rounded-3xl text-xl">➕ บันทึกข้อมูล</button>
-                </form>
-            </div>
-            <div class="lg:col-span-5 bg-white rounded-3xl p-6 border-2 border-pastel-100 flex flex-col min-h-[300px]">
-                <h2 class="text-xl font-extrabold text-center mb-4">📊 สัดส่วนสินค้า</h2>
-                <canvas id="expiryPieChart"></canvas>
-            </div>
-        </div>
-
-        <!-- รายการสินค้า -->
-        <div id="products-section" class="bg-white rounded-3xl p-6 border-2 border-pastel-100">
-            <h2 class="text-2xl font-extrabold mb-4">📦 รายการสินค้า</h2>
-            <div class="flex flex-wrap gap-2 mb-4">
-                <button onclick="setFilter('all')" class="px-4 py-2 rounded-xl font-bold bg-pastel-100">ทั้งหมด</button>
-            </div>
-            <input type="text" id="searchTerm" oninput="renderProducts()" placeholder="🔍 ค้นหาสินค้า..." class="w-full p-4 mb-4 rounded-2xl border-2 border-pastel-200">
-            <div id="productCardsContainer" class="space-y-4"></div>
-        </div>
-    </main>
-
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-6 py-4 rounded-2xl opacity-0 transition-opacity">
-        <span id="toastText"></span>
-    </div>
-
-    <script>
-        const appId = 'my-shop-data';
-        let products = JSON.parse(localStorage.getItem(appId)) || [];
-        let currentFilter = 'all';
-        let expiryPieChart = null;
-
-        const productForm = document.getElementById('productForm');
-        const productName = document.getElementById('productName');
-        const productExpiry = document.getElementById('productExpiry');
-        const productCardsContainer = document.getElementById('productCardsContainer');
-
-        // ฟังก์ชันพื้นฐาน
-        function save() { localStorage.setItem(appId, JSON.stringify(products)); renderProducts(); }
-
-        productForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            products.unshift({
-                id: Date.now().toString(),
-                name: productName.value,
-                expiryDate: productExpiry.value
-            });
-            save();
-            productForm.reset();
-            showToast("✅ บันทึกแล้ว");
+    // ฟังก์ชันอัปเดตตัวเลขสถิติ (กล่องด้านบน)
+    function updateStats() {
+        let expired = 0, expiring = 0, expiring15 = 0, safe = 0;
+        
+        products.forEach(p => {
+            const days = calculateDaysRemaining(p.expiryDate);
+            if (days <= 0) expired++;
+            else if (days <= 7) expiring++;
+            else if (days <= 15) expiring15++;
+            else safe++;
         });
 
-        function deleteProductItem(id) {
-            products = products.filter(p => p.id !== id);
-            save();
-            showToast("🗑️ ลบแล้ว");
-        }
+        // อัปเดตเลขหน้าจอตาม ID ที่คุณมีใน HTML
+        document.getElementById('statExpired').textContent = expired;
+        document.getElementById('statExpiring').textContent = expiring;
+        document.getElementById('statExpiring15').textContent = expiring15;
+        document.getElementById('statSafe').textContent = safe;
+    }
 
-        function renderProducts() {
-            productCardsContainer.innerHTML = '';
-            // Logic กรองข้อมูลและแสดงผล (เหมือนเดิม)
-            products.forEach(item => {
-                const card = document.createElement('div');
-                card.className = "p-5 rounded-3xl border-2 bg-white flex justify-between items-center";
-                card.innerHTML = `
-                    <div><div class="font-bold">${item.name}</div><div class="text-sm">หมดอายุ: ${item.expiryDate}</div></div>
-                    <button onclick="deleteProductItem('${item.id}')" class="bg-rose-50 text-rose-600 px-5 py-3 rounded-2xl font-bold">ลบ</button>
-                `;
-                productCardsContainer.appendChild(card);
-            });
-            updateStats();
-        }
+    // ฟังก์ชันวาดรายการสินค้า (การ์ด)
+    function renderProducts() {
+        const container = document.getElementById('productCardsContainer');
+        container.innerHTML = '';
+        
+        products.forEach((item, index) => {
+            const days = calculateDaysRemaining(item.expiryDate);
+            const card = document.createElement('div');
+            card.className = "p-5 rounded-3xl border-2 border-pastel-200 bg-white flex justify-between items-center shadow-sm";
+            card.innerHTML = `
+                <div>
+                    <div class="text-xl font-extrabold text-pastel-900">${item.name}</div>
+                    <div class="text-sm font-bold text-pastel-400">หมดอายุ: ${item.expiryDate}</div>
+                </div>
+                <button onclick="deleteProductItem(${index})" class="bg-rose-50 text-rose-600 border-2 border-rose-200 font-extrabold px-5 py-3 rounded-2xl">ลบ</button>
+            `;
+            container.appendChild(card);
+        });
 
-        function updateStats() {
-            // คำนวณตัวเลขสถิติแล้วอัปเดตตัวเลขในหน้าจอ
-            document.getElementById('statExpired').textContent = products.filter(p => new Date(p.expiryDate) < new Date()).length;
-            // (ใส่ logic การอัปเดตตัวเลขอื่นๆ ตามนี้)
-        }
+        updateStats(); // เรียกคำนวณเลขใหม่ทุกครั้งที่วาดการ์ด
+    }
 
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastText').textContent = msg;
-            toast.style.opacity = '1';
-            setTimeout(() => toast.style.opacity = '0', 2000);
-        }
-
-        function setFilter(f) { currentFilter = f; renderProducts(); }
-        function setFilterAndScroll(f) { setFilter(f); document.getElementById('products-section').scrollIntoView({behavior:'smooth'}); }
-
+    // ฟังก์ชันบันทึกข้อมูล
+    document.getElementById('productForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        products.unshift({
+            name: document.getElementById('productName').value,
+            expiryDate: document.getElementById('productExpiry').value
+        });
+        localStorage.setItem(appId, JSON.stringify(products));
+        document.getElementById('productForm').reset();
         renderProducts();
-    </script>
-</body>
-</html>
+    });
+
+    // ฟังก์ชันลบข้อมูล
+    function deleteProductItem(index) {
+        products.splice(index, 1);
+        localStorage.setItem(appId, JSON.stringify(products));
+        renderProducts();
+    }
+
+    // เริ่มทำงานครั้งแรก
+    renderProducts();
+</script>
