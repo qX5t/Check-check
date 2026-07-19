@@ -75,3 +75,88 @@
     // เริ่มทำงานครั้งแรก
     renderProducts();
 </script>
+<script>
+    const appId = 'my-shop-data';
+    let products = JSON.parse(localStorage.getItem(appId)) || [];
+    let currentFilter = 'all'; // สถานะตัวกรองเริ่มต้น
+
+    function calculateDaysRemaining(expiryStr) {
+        if (!expiryStr) return 999;
+        const target = new Date(expiryStr);
+        target.setHours(0,0,0,0);
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        return Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+    }
+
+    // ฟังก์ชันกรองข้อมูล
+    function filterProducts() {
+        if (currentFilter === 'all') return products;
+        return products.filter(p => {
+            const days = calculateDaysRemaining(p.expiryDate);
+            if (currentFilter === 'expired') return days <= 0;
+            if (currentFilter === 'expiring') return days > 0 && days <= 7;
+            if (currentFilter === 'expiring_15') return days > 7 && days <= 15;
+            if (currentFilter === 'safe') return days > 15;
+            return true;
+        });
+    }
+
+    function updateStats() {
+        // คำนวณเลขใหม่เสมอ
+        document.getElementById('statExpired').textContent = products.filter(p => calculateDaysRemaining(p.expiryDate) <= 0).length;
+        document.getElementById('statExpiring').textContent = products.filter(p => { const d = calculateDaysRemaining(p.expiryDate); return d > 0 && d <= 7; }).length;
+        document.getElementById('statExpiring15').textContent = products.filter(p => { const d = calculateDaysRemaining(p.expiryDate); return d > 7 && d <= 15; }).length;
+        document.getElementById('statSafe').textContent = products.filter(p => calculateDaysRemaining(p.expiryDate) > 15).length;
+    }
+
+    function renderProducts() {
+        const container = document.getElementById('productCardsContainer');
+        container.innerHTML = '';
+        
+        const displayList = filterProducts(); // ใช้รายการที่กรองแล้ว
+        
+        displayList.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = "p-5 rounded-3xl border-2 border-pastel-200 bg-white flex justify-between items-center shadow-sm";
+            card.innerHTML = `
+                <div>
+                    <div class="text-xl font-extrabold text-pastel-900">${item.name}</div>
+                    <div class="text-sm font-bold text-pastel-400">หมดอายุ: ${item.expiryDate}</div>
+                </div>
+                <button onclick="deleteProductItem('${item.id}')" class="bg-rose-50 text-rose-600 border-2 border-rose-200 font-extrabold px-5 py-3 rounded-2xl">ลบ</button>
+            `;
+            container.appendChild(card);
+        });
+
+        updateStats();
+    }
+
+    // ฟังก์ชันสำหรับคลิกกล่องสถิติ
+    function setFilterAndScroll(filterType) {
+        currentFilter = filterType;
+        renderProducts();
+        document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // แก้ไข ID ให้ตรงกับ HTML ของคุณ
+    document.getElementById('productForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        products.unshift({
+            id: Date.now().toString(),
+            name: document.getElementById('productName').value,
+            expiryDate: document.getElementById('productExpiry').value
+        });
+        localStorage.setItem(appId, JSON.stringify(products));
+        document.getElementById('productForm').reset();
+        renderProducts();
+    });
+
+    function deleteProductItem(id) {
+        products = products.filter(p => p.id !== id);
+        localStorage.setItem(appId, JSON.stringify(products));
+        renderProducts();
+    }
+
+    renderProducts();
+</script>
