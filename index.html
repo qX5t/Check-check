@@ -3,81 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expiry Tracker - Minimalist</title>
+    <title>Expiry Tracker - Premium Pastel Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
         body { 
-            background-color: #f7faf8; 
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #f4faf6 0%, #f9fbf9 100%); 
+            font-family: 'Plus Jakarta Sans', 'Noto Sans Thai', sans-serif;
             color: #2d3748;
+            min-height: 100vh;
         }
-        .bg-pastel-green { background-color: #eef7f2; }
-        .bg-pastel-yellow { background-color: #fefaf0; }
-        .bg-pastel-orange { background-color: #fff6f0; }
-        .bg-pastel-red { background-color: #fff5f5; }
-        
-        .border-pastel-green { border-color: #d1e7dd; }
-        .border-pastel-yellow { border-color: #fef3c7; }
-        .border-pastel-orange { border-color: #ffedd5; }
-        .border-pastel-red { border-color: #fed7d7; }
+        .stat-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        .active-filter-safe { border-color: #10b981 !important; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08); }
+        .active-filter-warn { border-color: #f59e0b !important; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.08); }
+        .active-filter-urgent { border-color: #f97316 !important; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.08); }
+        .active-filter-expired { border-color: #ef4444 !important; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.08); }
+        .input-premium:focus {
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
     </style>
 </head>
-<body class="py-12 px-4 sm:px-6 lg:px-8">
+<body class="py-10 px-4 sm:px-6 lg:px-8">
 
     <div class="max-w-2xl mx-auto">
-        <!-- Header -->
+        <!-- Brand Header Section -->
         <header class="text-center mb-10">
-            <span class="text-xs font-semibold tracking-widest text-emerald-600 uppercase bg-emerald-50 px-3 py-1 rounded-full">Dashboard</span>
-            <h1 class="text-3xl font-bold text-gray-800 mt-3 tracking-tight">Expiry Tracker</h1>
-            <p class="text-sm text-gray-500 mt-1">จัดการและติดตามวันหมดอายุของสินค้าอย่างเรียบง่าย</p>
+            <div class="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide border border-emerald-100/60 mb-3">
+                <svg class="w-3.5 h-3.5 text-emerald-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>Freshness Smart Management</span>
+            </div>
+            <h1 class="text-3.5xl font-bold tracking-tight text-gray-800">Expiry Tracker</h1>
+            <p class="text-sm text-gray-400 mt-1.5 font-normal">ระบบติดตามและถนอมคุณภาพวัตถุดิบด้วยสไตล์ที่เรียบง่าย</p>
         </header>
 
-        <!-- 4 Stats Boxes (2 Top, 2 Bottom) -->
+        <!-- 4 Stats Boxes Grid (2 Top, 2 Bottom) -->
         <div class="grid grid-cols-2 gap-4 mb-8">
-            <div onclick="filterCategory('safe')" class="cursor-pointer bg-pastel-green border border-pastel-green p-5 rounded-2xl transition-all hover:shadow-sm text-center">
-                <span class="block text-xs font-medium text-emerald-700 uppercase tracking-wider">ปลอดภัย (&gt;15 วัน)</span>
-                <span id="count-safe" class="block text-2xl font-bold text-emerald-900 mt-1">0</span>
+            <div id="btn-safe" onclick="filterCategory('safe')" class="stat-card cursor-pointer bg-emerald-50/60 border border-emerald-100/80 p-5 rounded-2xl text-center hover:bg-emerald-50">
+                <span class="block text-xs font-medium text-emerald-700/80 uppercase tracking-wider">🟢 ปลอดภัย (&gt;15 วัน)</span>
+                <span id="count-safe" class="block text-2xl font-bold text-emerald-900 mt-1.5">0</span>
             </div>
-            <div onclick="filterCategory('warn')" class="cursor-pointer bg-pastel-yellow border border-pastel-yellow p-5 rounded-2xl transition-all hover:shadow-sm text-center">
-                <span class="block text-xs font-medium text-amber-700 uppercase tracking-wider">ใกล้หมดอายุ (7-15 วัน)</span>
-                <span id="count-warn" class="block text-2xl font-bold text-amber-900 mt-1">0</span>
+            <div id="btn-warn" onclick="filterCategory('warn')" class="stat-card cursor-pointer bg-amber-50/60 border border-amber-100/80 p-5 rounded-2xl text-center hover:bg-amber-50">
+                <span class="block text-xs font-medium text-amber-700/80 uppercase tracking-wider">🟡 ใกล้หมดอายุ (7-15 วัน)</span>
+                <span id="count-warn" class="block text-2xl font-bold text-amber-900 mt-1.5">0</span>
             </div>
-            <div onclick="filterCategory('urgent')" class="cursor-pointer bg-pastel-orange border border-pastel-orange p-5 rounded-2xl transition-all hover:shadow-sm text-center">
-                <span class="block text-xs font-medium text-orange-700 uppercase tracking-wider">เร่งด่วน (&le;7 วัน)</span>
-                <span id="count-urgent" class="block text-2xl font-bold text-orange-900 mt-1">0</span>
+            <div id="btn-urgent" onclick="filterCategory('urgent')" class="stat-card cursor-pointer bg-orange-50/60 border border-orange-100/80 p-5 rounded-2xl text-center hover:bg-orange-50">
+                <span class="block text-xs font-medium text-orange-700/80 uppercase tracking-wider">🟠 เร่งด่วน (&le;7 วัน)</span>
+                <span id="count-urgent" class="block text-2xl font-bold text-orange-900 mt-1.5">0</span>
             </div>
-            <div onclick="filterCategory('expired')" class="cursor-pointer bg-pastel-red border border-pastel-red p-5 rounded-2xl transition-all hover:shadow-sm text-center">
-                <span class="block text-xs font-medium text-red-700 uppercase tracking-wider">หมดอายุแล้ว</span>
-                <span id="count-expired" class="block text-2xl font-bold text-red-900 mt-1">0</span>
+            <div id="btn-expired" onclick="filterCategory('expired')" class="stat-card cursor-pointer bg-red-50/60 border border-red-100/80 p-5 rounded-2xl text-center hover:bg-red-50">
+                <span class="block text-xs font-medium text-red-700/80 uppercase tracking-wider">🔴 หมดอายุแล้ว</span>
+                <span id="count-expired" class="block text-2xl font-bold text-red-900 mt-1.5">0</span>
             </div>
         </div>
 
-        <!-- Add Product Form -->
-        <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm mb-8">
+        <!-- Add Product Luxury Form Container -->
+        <div class="bg-white/80 backdrop-blur-md border border-gray-100/80 p-6 rounded-2xl shadow-sm mb-8">
             <h2 class="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                เพิ่มสินค้าใหม่
+                <div class="p-1 rounded-md bg-emerald-50 text-emerald-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                </div>
+                เพิ่มรายการสินค้าใหม่
             </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                <input type="text" id="itemName" placeholder="ชื่อสินค้า เช่น นมสด, ขนมปัง" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400 transition-colors">
-                <input type="date" id="expiryDate" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400 transition-colors text-gray-600">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 ml-1">ชื่อสินค้าหรือวัตถุดิบ</label>
+                    <input type="text" id="itemName" placeholder="เช่น นมสดพาสเจอร์ไรส์, อกไก่" 
+                        class="w-full p-3 bg-gray-50/60 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400 focus:bg-white transition-all input-premium">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 ml-1">วันหมดอายุหน้ากล่อง</label>
+                    <input type="date" id="expiryDate" 
+                        class="w-full p-3 bg-gray-50/60 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400 focus:bg-white transition-all text-gray-600 input-premium">
+                </div>
             </div>
-            <button onclick="addItem()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-xl font-medium text-sm transition-colors shadow-sm shadow-emerald-100">
-                บันทึกข้อมูล
+            
+            <button onclick="addItem()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white py-3.5 rounded-xl font-semibold text-sm transition-all shadow-sm shadow-emerald-100 flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                บันทึกลงระบบ
             </button>
         </div>
 
-        <!-- Section Title & Filter Clear -->
+        <!-- Section List Sub-Header -->
         <div class="flex justify-between items-center mb-4 px-1">
-            <h3 id="list-title" class="text-sm font-semibold text-gray-500 uppercase tracking-wider">สินค้าทั้งหมด</h3>
-            <button id="clear-filter" onclick="filterCategory('all')" class="hidden text-xs text-emerald-600 hover:underline font-medium">ดูทั้งหมด</button>
+            <h3 id="list-title" class="text-xs font-bold text-gray-400 uppercase tracking-widest">สินค้าทั้งหมด</h3>
+            <button id="clear-filter" onclick="filterCategory('all')" class="hidden text-xs text-emerald-600 hover:text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100/40 transition-all">
+                ดูรายการทั้งหมด
+            </button>
         </div>
 
-        <!-- Product List -->
-        <div id="productList" class="space-y-2.5"></div>
+        <!-- Dynamic Product Content Area -->
+        <div id="productList" class="space-y-3"></div>
     </div>
 
     <script>
@@ -117,7 +141,7 @@
         function addItem() {
             const name = document.getElementById('itemName').value.trim();
             const date = document.getElementById('expiryDate').value;
-            if (!name || !date) return alert("กรุณากรอกชื่อสินค้าและเลือกวันหมดอายุให้ครบถ้วนครับ");
+            if (!name || !date) return alert("กรุณาระบุข้อมูลสินค้าและวันหมดอายุให้ครบถ้วนด้วยนะครับ 😊");
 
             products.push({ name, date });
             localStorage.setItem('myProducts', JSON.stringify(products));
@@ -138,12 +162,17 @@
             const clearBtn = document.getElementById('clear-filter');
             const title = document.getElementById('list-title');
             
+            ['safe', 'warn', 'urgent', 'expired'].forEach(c => {
+                document.getElementById(`btn-${c}`).classList.remove(`active-filter-${c}`);
+            });
+            
             if (cat === 'all') {
                 clearBtn.classList.add('hidden');
                 title.innerText = "สินค้าทั้งหมด";
             } else {
                 clearBtn.classList.remove('hidden');
-                const titles = { safe: '🟢 ปลอดภัย (>15 วัน)', warn: '🟡 ใกล้หมดอายุ (7-15 วัน)', urgent: '🟠 เร่งด่วน (≤7 วัน)', expired: '🔴 หมดอายุแล้ว' };
+                document.getElementById(`btn-${cat}`).classList.add(`active-filter-${cat}`);
+                const titles = { safe: '🟢 รายการปลอดภัย (>15 วัน)', warn: '🟡 รายการใกล้หมดอายุ (7-15 วัน)', urgent: '🟠 รายการเร่งด่วน (≤7 วัน)', expired: '🔴 รายการที่หมดอายุแล้ว' };
                 title.innerText = titles[cat];
             }
             render();
@@ -168,7 +197,11 @@
             filteredProducts.sort((a, b) => new Date(a.date) - new Date(b.date));
 
             if (filteredProducts.length === 0) {
-                list.innerHTML = `<div class="text-center py-10 text-sm text-gray-400 border border-dashed border-gray-200 rounded-2xl bg-white">ไม่มีรายการสินค้าในหมวดหมู่นี้</div>`;
+                list.innerHTML = `
+                    <div class="text-center py-12 text-sm text-gray-400 border border-dashed border-gray-200 rounded-2xl bg-white/50 backdrop-blur-sm">
+                        <svg class="w-8 h-8 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                        ไม่มีรายการสินค้าในหมวดหมู่นี้
+                    </div>`;
                 updateStats();
                 return;
             }
@@ -178,35 +211,35 @@
                 expDate.setHours(0,0,0,0);
                 const diff = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
                 
-                let cardClass = "bg-white border-gray-100 hover:border-emerald-200";
-                let badge = `<span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">เหลือ ${diff} วัน</span>`;
+                let cardClass = "hover:border-emerald-200/80";
+                let badge = `<span class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-100/50">เหลือ ${diff} วัน</span>`;
                 
                 if (diff < 0) {
-                    cardClass = "bg-white border-red-100 hover:border-red-200";
-                    badge = `<span class="text-xs font-medium text-red-600 bg-red-50 px-2.5 py-1 rounded-lg font-semibold">หมดอายุแล้ว ${Math.abs(diff)} วัน</span>`;
+                    cardClass = "hover:border-red-200/80";
+                    badge = `<span class="text-xs font-semibold text-red-700 bg-red-50 px-3 py-1 rounded-xl border border-red-100/50">หมดอายุแล้ว ${Math.abs(diff)} วัน</span>`;
                 } else if (diff <= 7) {
-                    cardClass = "bg-white border-orange-100 hover:border-orange-200";
-                    badge = `<span class="text-xs font-medium text-orange-600 bg-orange-50 px-2.5 py-1 rounded-lg">เหลือ ${diff} วัน</span>`;
+                    cardClass = "hover:border-orange-200/80";
+                    badge = `<span class="text-xs font-semibold text-orange-700 bg-orange-50 px-3 py-1 rounded-xl border border-orange-100/50">เหลือ ${diff} วัน</span>`;
                 } else if (diff <= 15) {
-                    cardClass = "bg-white border-amber-100 hover:border-amber-200";
-                    badge = `<span class="text-xs font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-lg">เหลือ ${diff} วัน</span>`;
+                    cardClass = "hover:border-amber-200/80";
+                    badge = `<span class="text-xs font-semibold text-amber-700 bg-amber-50 px-3 py-1 rounded-xl border border-amber-100/50">เหลือ ${diff} วัน</span>`;
                 }
 
                 const options = { year: 'numeric', month: 'short', day: 'numeric' };
                 const formattedDate = new Date(p.date).toLocaleDateString('th-TH', options);
 
                 return `
-                    <div class="p-4 border rounded-2xl ${cardClass} flex justify-between items-center transition-all bg-white shadow-sm hover:shadow-md group">
+                    <div class="p-4 border border-gray-100 rounded-2xl ${cardClass} flex justify-between items-center transition-all bg-white shadow-[0_2px_8px_-3px_rgba(0,0,0,0.03)] hover:shadow-md group animate-fade-in">
                         <div class="flex flex-col gap-1">
-                            <span class="font-semibold text-gray-700 text-sm">${p.name}</span>
-                            <span class="text-xs text-gray-400 flex items-center gap-1">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                Exp: ${formattedDate}
+                            <span class="font-bold text-gray-700 text-sm tracking-tight">${p.name}</span>
+                            <span class="text-xs text-gray-400 flex items-center gap-1.5 font-medium">
+                                <svg class="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                ควรบริโภคก่อน: ${formattedDate}
                             </span>
                         </div>
                         <div class="flex items-center gap-3">
                             ${badge}
-                            <button onclick="deleteItem(${p.originalIndex})" class="text-gray-300 hover:text-red-500 p-1 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
+                            <button onclick="deleteItem(${p.originalIndex})" class="text-gray-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-xl transition-all opacity-0 group-hover:opacity-100 focus:opacity-100">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
