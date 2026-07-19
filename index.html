@@ -2,54 +2,221 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expiry Tracker - Minimalist</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #f0fdf4; }
-        .pastel-green { background-color: #d1e7dd; color: #0f5132; }
+        body { 
+            background-color: #f7faf8; 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #2d3748;
+        }
+        .bg-pastel-green { background-color: #eef7f2; }
+        .bg-pastel-yellow { background-color: #fefaf0; }
+        .bg-pastel-orange { background-color: #fff6f0; }
+        .bg-pastel-red { background-color: #fff5f5; }
+        
+        .border-pastel-green { border-color: #d1e7dd; }
+        .border-pastel-yellow { border-color: #fef3c7; }
+        .border-pastel-orange { border-color: #ffedd5; }
+        .border-pastel-red { border-color: #fed7d7; }
     </style>
 </head>
-<body class="p-8">
-    <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-lg">
-        <h1 class="text-2xl font-bold text-center mb-6 text-green-800">ระบบเช็คสินค้าหมดอายุ</h1>
-        
-        <!-- ฟอร์มเพิ่มสินค้า -->
-        <div class="mb-8 p-4 pastel-green rounded-lg">
-            <input type="text" id="itemName" placeholder="ชื่อสินค้า" class="p-2 rounded border mr-2">
-            <input type="date" id="expiryDate" class="p-2 rounded border mr-2">
-            <button onclick="addItem()" class="bg-green-600 text-white px-4 py-2 rounded">เพิ่มสินค้า</button>
+<body class="py-12 px-4 sm:px-6 lg:px-8">
+
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <span class="text-xs font-semibold tracking-widest text-emerald-600 uppercase bg-emerald-50 px-3 py-1 rounded-full">Dashboard</span>
+            <h1 class="text-3xl font-bold text-gray-800 mt-3 tracking-tight">Expiry Tracker</h1>
+            <p class="text-sm text-gray-500 mt-1">จัดการและติดตามวันหมดอายุของสินค้าอย่างเรียบง่าย</p>
+        </header>
+
+        <!-- 4 Stats Boxes (2 Top, 2 Bottom) -->
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <div onclick="filterCategory('safe')" class="cursor-pointer bg-pastel-green border border-pastel-green p-5 rounded-2xl transition-all hover:shadow-sm text-center">
+                <span class="block text-xs font-medium text-emerald-700 uppercase tracking-wider">ปลอดภัย (&gt;15 วัน)</span>
+                <span id="count-safe" class="block text-2xl font-bold text-emerald-900 mt-1">0</span>
+            </div>
+            <div onclick="filterCategory('warn')" class="cursor-pointer bg-pastel-yellow border border-pastel-yellow p-5 rounded-2xl transition-all hover:shadow-sm text-center">
+                <span class="block text-xs font-medium text-amber-700 uppercase tracking-wider">ใกล้หมดอายุ (7-15 วัน)</span>
+                <span id="count-warn" class="block text-2xl font-bold text-amber-900 mt-1">0</span>
+            </div>
+            <div onclick="filterCategory('urgent')" class="cursor-pointer bg-pastel-orange border border-pastel-orange p-5 rounded-2xl transition-all hover:shadow-sm text-center">
+                <span class="block text-xs font-medium text-orange-700 uppercase tracking-wider">เร่งด่วน (&le;7 วัน)</span>
+                <span id="count-urgent" class="block text-2xl font-bold text-orange-900 mt-1">0</span>
+            </div>
+            <div onclick="filterCategory('expired')" class="cursor-pointer bg-pastel-red border border-pastel-red p-5 rounded-2xl transition-all hover:shadow-sm text-center">
+                <span class="block text-xs font-medium text-red-700 uppercase tracking-wider">หมดอายุแล้ว</span>
+                <span id="count-expired" class="block text-2xl font-bold text-red-900 mt-1">0</span>
+            </div>
         </div>
 
-        <!-- รายการสินค้า -->
-        <div id="productList" class="space-y-2">
-            <!-- ข้อมูลจะแสดงที่นี่ -->
+        <!-- Add Product Form -->
+        <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm mb-8">
+            <h2 class="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                เพิ่มสินค้าใหม่
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                <input type="text" id="itemName" placeholder="ชื่อสินค้า เช่น นมสด, ขนมปัง" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400 transition-colors">
+                <input type="date" id="expiryDate" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400 transition-colors text-gray-600">
+            </div>
+            <button onclick="addItem()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-xl font-medium text-sm transition-colors shadow-sm shadow-emerald-100">
+                บันทึกข้อมูล
+            </button>
         </div>
+
+        <!-- Section Title & Filter Clear -->
+        <div class="flex justify-between items-center mb-4 px-1">
+            <h3 id="list-title" class="text-sm font-semibold text-gray-500 uppercase tracking-wider">สินค้าทั้งหมด</h3>
+            <button id="clear-filter" onclick="filterCategory('all')" class="hidden text-xs text-emerald-600 hover:underline font-medium">ดูทั้งหมด</button>
+        </div>
+
+        <!-- Product List -->
+        <div id="productList" class="space-y-2.5"></div>
     </div>
 
     <script>
-        let products = [];
+        let products = JSON.parse(localStorage.getItem('myProducts') || '[]');
+        let currentFilter = 'all';
+
+        function getCategory(diff) {
+            if (diff < 0) return 'expired';
+            if (diff <= 7) return 'urgent';
+            if (diff <= 15) return 'warn';
+            return 'safe';
+        }
+
+        function updateStats() {
+            const now = new Date();
+            now.setHours(0,0,0,0);
+            let safe = 0, warn = 0, urgent = 0, expired = 0;
+
+            products.forEach(p => {
+                const expDate = new Date(p.date);
+                expDate.setHours(0,0,0,0);
+                const diff = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+                
+                const cat = getCategory(diff);
+                if (cat === 'expired') expired++;
+                else if (cat === 'urgent') urgent++;
+                else if (cat === 'warn') warn++;
+                else safe++;
+            });
+
+            document.getElementById('count-safe').innerText = safe;
+            document.getElementById('count-warn').innerText = warn;
+            document.getElementById('count-urgent').innerText = urgent;
+            document.getElementById('count-expired').innerText = expired;
+        }
+
         function addItem() {
-            const name = document.getElementById('itemName').value;
-            const date = new Date(document.getElementById('expiryDate').value);
-            const today = new Date();
-            const diffDays = Math.ceil((date - today) / (1000 * 60 * 60 * 24));
+            const name = document.getElementById('itemName').value.trim();
+            const date = document.getElementById('expiryDate').value;
+            if (!name || !date) return alert("กรุณากรอกชื่อสินค้าและเลือกวันหมดอายุให้ครบถ้วนครับ");
+
+            products.push({ name, date });
+            localStorage.setItem('myProducts', JSON.stringify(products));
+            render();
             
-            products.push({ name, date: date.toLocaleDateString(), diffDays });
+            document.getElementById('itemName').value = '';
+            document.getElementById('expiryDate').value = '';
+        }
+
+        function deleteItem(index) {
+            products.splice(index, 1);
+            localStorage.setItem('myProducts', JSON.stringify(products));
+            render();
+        }
+
+        function filterCategory(cat) {
+            currentFilter = cat;
+            const clearBtn = document.getElementById('clear-filter');
+            const title = document.getElementById('list-title');
+            
+            if (cat === 'all') {
+                clearBtn.classList.add('hidden');
+                title.innerText = "สินค้าทั้งหมด";
+            } else {
+                clearBtn.classList.remove('hidden');
+                const titles = { safe: '🟢 ปลอดภัย (>15 วัน)', warn: '🟡 ใกล้หมดอายุ (7-15 วัน)', urgent: '🟠 เร่งด่วน (≤7 วัน)', expired: '🔴 หมดอายุแล้ว' };
+                title.innerText = titles[cat];
+            }
             render();
         }
 
         function render() {
             const list = document.getElementById('productList');
-            list.innerHTML = products.map(p => {
-                let color = "bg-green-100";
-                if (p.diffDays < 0) color = "bg-red-200";
-                else if (p.diffDays <= 7) color = "bg-yellow-100";
+            const now = new Date();
+            now.setHours(0,0,0,0);
+
+            let filteredProducts = products.map((p, idx) => ({ ...p, originalIndex: idx }));
+
+            if (currentFilter !== 'all') {
+                filteredProducts = filteredProducts.filter(p => {
+                    const expDate = new Date(p.date);
+                    expDate.setHours(0,0,0,0);
+                    const diff = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+                    return getCategory(diff) === currentFilter;
+                });
+            }
+
+            filteredProducts.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            if (filteredProducts.length === 0) {
+                list.innerHTML = `<div class="text-center py-10 text-sm text-gray-400 border border-dashed border-gray-200 rounded-2xl bg-white">ไม่มีรายการสินค้าในหมวดหมู่นี้</div>`;
+                updateStats();
+                return;
+            }
+
+            list.innerHTML = filteredProducts.map(p => {
+                const expDate = new Date(p.date);
+                expDate.setHours(0,0,0,0);
+                const diff = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
                 
-                return `<div class="p-3 rounded-lg ${color} flex justify-between">
-                    <span>${p.name}</span>
-                    <span>หมดอายุใน: ${p.diffDays} วัน</span>
-                </div>`;
+                let cardClass = "bg-white border-gray-100 hover:border-emerald-200";
+                let badge = `<span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">เหลือ ${diff} วัน</span>`;
+                
+                if (diff < 0) {
+                    cardClass = "bg-white border-red-100 hover:border-red-200";
+                    badge = `<span class="text-xs font-medium text-red-600 bg-red-50 px-2.5 py-1 rounded-lg font-semibold">หมดอายุแล้ว ${Math.abs(diff)} วัน</span>`;
+                } else if (diff <= 7) {
+                    cardClass = "bg-white border-orange-100 hover:border-orange-200";
+                    badge = `<span class="text-xs font-medium text-orange-600 bg-orange-50 px-2.5 py-1 rounded-lg">เหลือ ${diff} วัน</span>`;
+                } else if (diff <= 15) {
+                    cardClass = "bg-white border-amber-100 hover:border-amber-200";
+                    badge = `<span class="text-xs font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-lg">เหลือ ${diff} วัน</span>`;
+                }
+
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                const formattedDate = new Date(p.date).toLocaleDateString('th-TH', options);
+
+                return `
+                    <div class="p-4 border rounded-2xl ${cardClass} flex justify-between items-center transition-all bg-white shadow-sm hover:shadow-md group">
+                        <div class="flex flex-col gap-1">
+                            <span class="font-semibold text-gray-700 text-sm">${p.name}</span>
+                            <span class="text-xs text-gray-400 flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                Exp: ${formattedDate}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            ${badge}
+                            <button onclick="deleteItem(${p.originalIndex})" class="text-gray-300 hover:text-red-500 p-1 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
             }).join('');
+            updateStats();
         }
+
+        render();
     </script>
 </body>
 </html>
