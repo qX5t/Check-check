@@ -233,8 +233,78 @@
         </div>
 
     </main>
-                    
+                    <div class="relative">
+                        <pre class="bg-slate-900 text-emerald-400 p-3 rounded-xl font-mono text-[9px] overflow-x-auto max-h-[150px] leading-normal">
+function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+  var result = [];
+  for (var i = 1; i < data.length; i++) {
+    var row = {};
+    var hasData = false;
+    for (var j = 0; j < headers.length; j++) {
+      row[headers[j]] = data[i][j];
+      if (data[i][j] !== "") hasData = true;
+    }
+    if (hasData) result.push(row);
+  }
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader("Access-Control-Allow-Origin", "*");
+}
 
+function doPost(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var param = JSON.parse(e.postData.contents);
+    
+    if (param.action === "add") {
+      sheet.appendRow([
+        param.id,
+        param.name,
+        param.category || '',
+        param.lot || '',
+        param.quantity || 1,
+        param.expiryDate,
+        new Date().toLocaleString('th-TH')
+      ]);
+      return ContentService.createTextOutput(JSON.stringify({status: "success"}))
+        .setMimeType(ContentService.MimeType.JSON)
+        .setHeader("Access-Control-Allow-Origin", "*");
+    } 
+    
+    else if (param.action === "delete") {
+      var data = sheet.getDataRange().getValues();
+      var idColumnIndex = 0; // คอลัมน์ A คือ ID
+      var rowDeleted = false;
+      
+      for (var i = data.length - 1; i >= 1; i--) {
+        if (data[i][idColumnIndex] == param.id) {
+          sheet.deleteRow(i + 1);
+          rowDeleted = true;
+        }
+      }
+      
+      if (rowDeleted) {
+        return ContentService.createTextOutput(JSON.stringify({status: "success"}))
+          .setMimeType(ContentService.MimeType.JSON)
+          .setHeader("Access-Control-Allow-Origin", "*");
+      } else {
+        return ContentService.createTextOutput(JSON.stringify({status: "error", message: "ไม่พบสินค้า"}))
+          .setMimeType(ContentService.MimeType.JSON)
+          .setHeader("Access-Control-Allow-Origin", "*");
+      }
+    }
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.message}))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeader("Access-Control-Allow-Origin", "*");
+  }
+}
+                        </pre>
+     
+            
 
     <!-- แผงแจ้งเตือนสำหรับผู้สูงอายุ Toast ตัวหนาใหญ่เป้งชัดเจน -->
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center bg-slate-900/95 backdrop-blur-md text-white px-6 py-4 rounded-2xl shadow-xl space-x-3 transform translate-y-28 opacity-0 transition-all duration-300 w-[90%] max-w-md border-2 border-pastel-300">
