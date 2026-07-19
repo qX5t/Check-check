@@ -233,55 +233,6 @@
         </div>
 
     </main>
-
-    <!-- หน้าต่างตั้งค่า Google Sheet ที่สามารถซิงค์ได้สดข้ามอุปกรณ์ -->
-    <div id="modalConfig" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pastel-900/50 backdrop-blur-sm hidden">
-        <div class="bg-white rounded-3xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all duration-200 border-2 border-pastel-100">
-            
-            <div class="p-6 border-b-2 border-pastel-50 flex justify-between items-center bg-pastel-50">
-                <div>
-                    <h3 class="text-lg font-extrabold text-pastel-900">☁️ เชื่อมระบบคลาวด์ Google Sheets</h3>
-                    <p class="text-xs text-pastel-500 mt-1">ทำให้มือถือและคอมพิวเตอร์ทุกเครื่องเปิดดูข้อมูลตรงกันและลบพร้อมกันได้ทันที</p>
-                </div>
-                <button id="btnCloseConfig" class="text-pastel-400 hover:text-pastel-600 p-2 rounded-xl hover:bg-pastel-100 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- คู่มือการเชื่อมตั้งค่า Google Sheet เป็นคลาวด์รับ-ส่ง-ลบสมบูรณ์แบบ -->
-            <div class="p-6 overflow-y-auto space-y-4 text-sm text-pastel-600 leading-relaxed no-scrollbar">
-                
-                <div class="space-y-2">
-                    <label class="block text-sm font-extrabold text-pastel-900 uppercase" for="gasUrl">Google Apps Script Web App URL</label>
-                    <input type="url" id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-4 py-3 rounded-xl border-2 border-pastel-200 focus:outline-none focus:ring-4 focus:ring-pastel-300 font-semibold bg-pastel-50/30 text-pastel-900 text-xs">
-                </div>
-
-                <div class="flex space-x-2">
-                    <button id="btnSaveGas" class="flex-1 bg-pastel-500 hover:bg-pastel-600 text-white font-extrabold py-3.5 rounded-xl transition shadow-sm">
-                        เริ่มเชื่อมต่อกับ Google Sheet 🟢
-                    </button>
-                    <button id="btnDisconnectGas" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-3.5 rounded-xl transition font-extrabold hidden">
-                        ตัดการเชื่อมต่อ
-                    </button>
-                </div>
-
-                <div id="syncStatus" class="flex items-center space-x-2 p-3 bg-pastel-50 rounded-xl text-pastel-900 text-xs">
-                    <span id="syncPulse" class="w-2.5 h-2.5 rounded-full bg-slate-400 block"></span>
-                    <span id="syncStatusText" class="font-bold">สถานะของระบบ: จัดเก็บแบบส่วนตัวในเครื่องนี้ (ออฟไลน์)</span>
-                </div>
-
-                <div class="border-t border-pastel-100 pt-4 space-y-3">
-                    <p class="font-extrabold text-pastel-900 text-base">💡 วิธีติดตั้งให้ลิงก์กันหมดทุกเครื่อง (ฟรีใน 5 นาที):</p>
-                    <ol class="list-decimal list-inside space-y-2 text-xs text-pastel-600">
-                        <li>เปิด <span class="font-bold text-pastel-900">Google Sheets ใหม่</span> แล้วพิมพ์หัวตารางแถวที่ 1 คอลัมน์ A ถึง G ตามนี้เป๊ะ ๆ:<br>
-                            <span class="inline-block bg-slate-100 border border-slate-200 font-mono px-2 py-0.5 rounded text-rose-600 font-bold mt-1 select-all">id | name | category | lot | quantity | expiryDate | addedAt</span>
-                        </li>
-                        <li>กดไปที่เมนู <span class="font-bold">ส่วนขยาย (Extensions) > Apps Script</span></li>
-                        <li>ลบโค้ดเริ่มต้นออกให้เกลี้ยง แล้วนำโค้ดด้านล่างนี้ไปวางแทน:</li>
-                    </ol>
-
                     <div class="relative">
                         <pre class="bg-slate-900 text-emerald-400 p-3 rounded-xl font-mono text-[9px] overflow-x-auto max-h-[150px] leading-normal">
 function doGet(e) {
