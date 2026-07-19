@@ -330,30 +330,7 @@ function doPost(e) {
         let expiryPieChart = null;
         let syncIntervalId = null; // ตัวแปรเก็บเวลาจับดึงข้อมูล Auto-Refresh
 
-        // ฐานข้อมูลตัวเลือกของสินค้ายอดนิยมแนะนำในร้านค้า
-        const presetSuggestions = [
-            { name: "นมจืดเมจิ (Meiji)" },
-            { name: "นมเปรี้ยวดัชมิลล์รสสตรอว์เบอร์รี่" },
-            { name: "โยเกิร์ตดัชชี่ รสธรรมชาติ" },
-            { name: "เนยเค็มออร์คิด (Orchid)" },
-            { name: "ขนมปังแผ่นฟาร์มเฮ้าส์" },
-            { name: "เค้กกล้วยหอมทองเลอแปง" },
-            { name: "ครัวซองต์เนยสดอบชีสแผ่น" },
-            { name: "อกไก่สด CP" },
-            { name: "เนื้อหมูสับอนามัยเบทาโกร" },
-            { name: "ไข่ไก่สด 10 ฟองเบอร์ 2" },
-            { name: "เต้าหู้ไข่หลอดตรานางพยาบาล" },
-            { name: "ไส้กรอกรมควันหนังกรอบ CP" },
-            { name: "แฮมแผ่นสไลด์แซนด์วิช CP" },
-            { name: "ลูกชิ้นปลาต้มสุกเยาวราช" },
-            { name: "ปลากระป๋องสามแม่ครัว" },
-            { name: "ผักกาดขาวพร้อมต้มล้างสะอาด" },
-            { name: "มะเขือเทศเชอร์รี่ล้างสะอาด" },
-            { name: "แอปเปิ้ลฟูจินำเข้าหวานฉ่ำ" },
-            { name: "ยาลดไข้ ซาร่าพาราเซตามอล" },
-            { name: "ยาแก้ไอน้ำดำตราเสือดาว" },
-            { name: "วิตามินซีแบลคมอร์ส 1000 มก." }
-        ];
+    
 
         // อ้างอิง HTML Components
         const productForm = document.getElementById('productForm');
@@ -383,88 +360,6 @@ function doPost(e) {
         const syncStatusText = document.getElementById('syncStatusText');
         const syncPulse = document.getElementById('syncPulse');
 
-        // เริ่มโหลดองค์ประกอบระบบ
-        window.addEventListener('DOMContentLoaded', () => {
-            // โหลดสคริปต์ Google Sheet URL (ถ้ามี)
-            const savedUrl = localStorage.getItem(`${appId}_gasUrl`);
-            if (savedUrl) {
-                gasUrl = savedUrl;
-                gasUrlInput.value = savedUrl;
-                updateGoogleSheetUI(true);
-                fetchDataFromGoogleSheet();
-                
-                // ตั้งเวลา Auto-Refresh ดึงข้อมูลใหม่ทุก ๆ 10 วินาทีเพื่อความสดใหม่ของทุกเครื่อง
-                startAutoSync();
-            } else {
-                updateGoogleSheetUI(false);
-                loadProductsLocally();
-            }
-
-            // เรียกใช้คำแนะนำและการรับเสียง
-            setupAutocompleteSuggestions();
-            initSpeechRecognitionSystem();
-        });
-
-        // ฟังก์ชันคัดลอกรหัสสคริปต์ลงคลิปบอร์ด
-        const copyScriptBtn = document.getElementById('btnCopyScriptCode');
-        if (copyScriptBtn) {
-            copyScriptBtn.addEventListener('click', () => {
-                const pre = document.querySelector('#modalConfig pre');
-                const textarea = document.createElement('textarea');
-                textarea.value = pre.innerText;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                showToastNotification("📋 คัดลอกรหัสสคริปต์เรียบร้อยแล้วครับ", "success");
-            });
-        }
-
-        // บันทึก Google Sheets URL
-        btnSaveGas.addEventListener('click', () => {
-            const val = gasUrlInput.value.trim();
-            if (!val) {
-                showToastNotification("❌ โปรดใส่ URL Google Apps Script", "error");
-                return;
-            }
-            if (!val.startsWith('https://script.google.com/')) {
-                showToastNotification("❌ รูปแบบ URL ลิงก์ไม่ถูกต้อง", "error");
-                return;
-            }
-
-            gasUrl = val;
-            localStorage.setItem(`${appId}_gasUrl`, gasUrl);
-            updateGoogleSheetUI(true);
-            showToastNotification("💾 เชื่อมโยง Google Sheet สำเร็จแล้ว!", "success");
-            fetchDataFromGoogleSheet();
-            startAutoSync();
-        });
-
-        // ยกเลิก Google Sheets
-        btnDisconnectGas.addEventListener('click', () => {
-            localStorage.removeItem(`${appId}_gasUrl`);
-            gasUrl = '';
-            gasUrlInput.value = '';
-            updateGoogleSheetUI(false);
-            stopAutoSync();
-            loadProductsLocally();
-            showToastNotification("🔌 ตัดการเชื่อมโยงระบบคลาวด์แล้ว", "warning");
-        });
-
-        // เริ่มตั้งเวลาดึงข้อมูลเรียลไทม์ Auto-Refresh ทุกๆ 10 วินาที
-        function startAutoSync() {
-            stopAutoSync(); // ล้างของเก่าก่อน
-            syncIntervalId = setInterval(() => {
-                fetchDataFromGoogleSheet(true); // ดึงข้อมูลเบื้องหลังแบบเงียบ ๆ
-            }, 10000); 
-        }
-
-        function stopAutoSync() {
-            if (syncIntervalId) {
-                clearInterval(syncIntervalId);
-                syncIntervalId = null;
-            }
-        }
 
         // ดึงข้อมูลสินค้าของคลังที่จำลองในเครื่อง (กรณีออฟไลน์)
         function loadProductsLocally() {
@@ -489,71 +384,6 @@ function doPost(e) {
 
         function saveProductsLocally() {
             localStorage.setItem(`${appId}_products`, JSON.stringify(products));
-        }
-
-        // ปรับปรุงรายงานสถานะ Google Sheets
-        function updateGoogleSheetUI(isConnected) {
-            const cloudBadge = document.getElementById('cloudStatusBadge');
-            const cloudPulse = document.getElementById('cloudStatusPulse');
-            const cloudText = document.getElementById('cloudStatusText');
-
-            if (isConnected) {
-                btnDisconnectGas.classList.remove('hidden');
-                
-                if (cloudBadge) cloudBadge.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200";
-                if (cloudPulse) cloudPulse.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-1.5 inline-block";
-                if (cloudText) cloudText.textContent = "เชื่อมคลาวด์ Google Sheet สำเร็จแล้ว 🟢";
-
-                if (syncPulse) syncPulse.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse block";
-                if (syncStatusText) syncStatusText.textContent = "สถานะระบบ: เชื่อมข้อมูลคลาวด์พร้อมกันทุกเครื่องเรียบร้อยแล้ว!";
-            } else {
-                btnDisconnectGas.classList.add('hidden');
-
-                if (cloudBadge) cloudBadge.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200";
-                if (cloudPulse) cloudPulse.className = "w-2 h-2 rounded-full bg-amber-500 mr-1.5 inline-block";
-                if (cloudText) cloudText.textContent = "โหมดบันทึกส่วนตัวในเครื่องนี้ (ออฟไลน์)";
-
-                if (syncPulse) syncPulse.className = "w-2.5 h-2.5 rounded-full bg-slate-400 block";
-                if (syncStatusText) syncStatusText.textContent = "สถานะของระบบ: จัดเก็บแบบส่วนตัวในเครื่องนี้ (ออฟไลน์)";
-            }
-        }
-
-        // ดึงข้อมูลสินค้าจาก Google Sheets (GET)
-        async function fetchDataFromGoogleSheet(isBackground = false) {
-            if (!gasUrl) return;
-            if (!isBackground) {
-                showToastNotification("🔄 กำลังเชื่อมคลาวด์ ดึงข้อมูลล่าสุดจาก Google Sheets...", "info");
-            }
-
-            try {
-                const response = await fetch(gasUrl);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (Array.isArray(data)) {
-                        // ปรับแต่งข้อมูลให้สมบูรณ์
-                        products = data.map(item => ({
-                            id: item.id || 'PROD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-                            name: item.name || '',
-                            quantity: Number(item.quantity) || 1,
-                            expiryDate: item.expiryDate ? formatToStandardDate(item.expiryDate) : ''
-                        })).filter(item => item.name); // กรองแถวเปล่าที่อาจปนมาออก
-
-                        // บันทึกเก็บไว้ในเครื่องกันหลุดด้วย
-                        saveProductsLocally();
-                        renderProducts();
-
-                        if (!isBackground) {
-                            showToastNotification("✅ อัปเดตข้อมูลตรงกันทุกเครื่องสำเร็จแล้ว!", "success");
-                        }
-                    }
-                }
-            } catch(e) {
-                console.error("Fetch Google Sheets Error:", e);
-                if (!isBackground) {
-                    showToastNotification("⚠️ สัญญาณขัดข้อง กำลังใช้หน่วยความจำเครื่องแทน", "warning");
-                    loadProductsLocally();
-                }
-            }
         }
 
         // แปลงฟอร์แมตข้อมูลวันที่เป็น YYYY-MM-DD
