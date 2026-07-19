@@ -1,4 +1,9 @@
 <script>
+    <script>
+    localStorage.clear(); // <--- ใส่บรรทัดนี้ไว้ตรงนี้
+    const appId = 'my-shop-data';
+    // ... โค้ดส่วนที่เหลือของคุณ
+
     const appId = 'my-shop-data';
     let products = JSON.parse(localStorage.getItem(appId)) || [];
 
