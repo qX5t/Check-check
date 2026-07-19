@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expiry Tracker - Premium Pastel Edition</title>
+    <title>ระบบสต๊อกสินค้าหมดอายุ - ร้านธนภรรุ่งเรือง</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Premium Google Fonts (Thai & Latin Support) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,16 +18,40 @@
             color: #2d3748;
             min-height: 100vh;
         }
+        
         .stat-card {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .stat-card:hover {
             transform: translateY(-2px);
         }
-        .active-filter-safe { border-color: #10b981 !important; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08); }
-        .active-filter-warn { border-color: #f59e0b !important; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.08); }
-        .active-filter-urgent { border-color: #f97316 !important; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.08); }
-        .active-filter-expired { border-color: #ef4444 !important; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.08); }
+        
+        /* Premium Highlight Active Filters */
+        .active-filter-safe { 
+            border: 2px solid #10b981 !important; 
+            background-color: #ecfdf5 !important; 
+            transform: scale(1.03);
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1), 0 4px 6px -2px rgba(16, 185, 129, 0.05);
+        }
+        .active-filter-warn { 
+            border: 2px solid #f59e0b !important; 
+            background-color: #fffbeb !important; 
+            transform: scale(1.03);
+            box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.1), 0 4px 6px -2px rgba(245, 158, 11, 0.05);
+        }
+        .active-filter-urgent { 
+            border: 2px solid #f97316 !important; 
+            background-color: #fff7ed !important; 
+            transform: scale(1.03);
+            box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.1), 0 4px 6px -2px rgba(249, 115, 22, 0.05);
+        }
+        .active-filter-expired { 
+            border: 2px solid #ef4444 !important; 
+            background-color: #fef2f2 !important; 
+            transform: scale(1.03);
+            box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.1), 0 4px 6px -2px rgba(239, 68, 68, 0.05);
+        }
+
         .input-premium:focus {
             box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
         }
@@ -40,24 +66,30 @@
                 <svg class="w-3.5 h-3.5 text-emerald-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <span>Freshness Smart Management</span>
             </div>
-            <h1 class="text-3.5xl font-bold tracking-tight text-gray-800">Expiry Tracker</h1>
-            <p class="text-sm text-gray-400 mt-1.5 font-normal">ระบบติดตามและถนอมคุณภาพวัตถุดิบด้วยสไตล์ที่เรียบง่าย</p>
+            <!-- ส่วนแสดงชื่อร้านค้าและหัวข้อตามสั่ง -->
+            <h1 class="text-3.5xl font-bold tracking-tight text-emerald-900">ร้านธนภรรุ่งเรือง</h1>
+            <p class="text-lg font-bold text-emerald-600 mt-1">รายการสต๊อกสินค้าของร้าน</p>
+            <p class="text-xs text-gray-400 mt-2 font-normal">ระบบติดตาม ตรวจสอบ และสแกนคัดกรองสินค้าหมดอายุอัจฉริยะ</p>
         </header>
 
         <!-- 4 Stats Boxes Grid (2 Top, 2 Bottom) -->
         <div class="grid grid-cols-2 gap-4 mb-8">
+            <!-- Safe Category -->
             <div id="btn-safe" onclick="filterCategory('safe')" class="stat-card cursor-pointer bg-emerald-50/60 border border-emerald-100/80 p-5 rounded-2xl text-center hover:bg-emerald-50">
                 <span class="block text-xs font-medium text-emerald-700/80 uppercase tracking-wider">🟢 ปลอดภัย (&gt;15 วัน)</span>
                 <span id="count-safe" class="block text-2xl font-bold text-emerald-900 mt-1.5">0</span>
             </div>
+            <!-- Warning Category -->
             <div id="btn-warn" onclick="filterCategory('warn')" class="stat-card cursor-pointer bg-amber-50/60 border border-amber-100/80 p-5 rounded-2xl text-center hover:bg-amber-50">
                 <span class="block text-xs font-medium text-amber-700/80 uppercase tracking-wider">🟡 ใกล้หมดอายุ (7-15 วัน)</span>
                 <span id="count-warn" class="block text-2xl font-bold text-amber-900 mt-1.5">0</span>
             </div>
+            <!-- Urgent Category -->
             <div id="btn-urgent" onclick="filterCategory('urgent')" class="stat-card cursor-pointer bg-orange-50/60 border border-orange-100/80 p-5 rounded-2xl text-center hover:bg-orange-50">
                 <span class="block text-xs font-medium text-orange-700/80 uppercase tracking-wider">🟠 เร่งด่วน (&le;7 วัน)</span>
                 <span id="count-urgent" class="block text-2xl font-bold text-orange-900 mt-1.5">0</span>
             </div>
+            <!-- Expired Category -->
             <div id="btn-expired" onclick="filterCategory('expired')" class="stat-card cursor-pointer bg-red-50/60 border border-red-100/80 p-5 rounded-2xl text-center hover:bg-red-50">
                 <span class="block text-xs font-medium text-red-700/80 uppercase tracking-wider">🔴 หมดอายุแล้ว</span>
                 <span id="count-expired" class="block text-2xl font-bold text-red-900 mt-1.5">0</span>
@@ -70,17 +102,17 @@
                 <div class="p-1 rounded-md bg-emerald-50 text-emerald-600">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                 </div>
-                เพิ่มรายการสินค้าใหม่
+                เพิ่มรายการสินค้าใหม่เข้าสต๊อก
             </h2>
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1.5 ml-1">ชื่อสินค้าหรือวัตถุดิบ</label>
-                    <input type="text" id="itemName" placeholder="เช่น นมสดพาสเจอร์ไรส์, อกไก่" 
+                    <input type="text" id="itemName" placeholder="เช่น น้ำดื่ม, บะหมี่กึ่งสำเร็จรูป, นมสด" 
                         class="w-full p-3 bg-gray-50/60 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400 focus:bg-white transition-all input-premium">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5 ml-1">วันหมดอายุหน้ากล่อง</label>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 ml-1">วันหมดอายุหน้ากล่อง / บรรจุภัณฑ์</label>
                     <input type="date" id="expiryDate" 
                         class="w-full p-3 bg-gray-50/60 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400 focus:bg-white transition-all text-gray-600 input-premium">
                 </div>
@@ -88,7 +120,7 @@
             
             <button onclick="addItem()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white py-3.5 rounded-xl font-semibold text-sm transition-all shadow-sm shadow-emerald-100 flex items-center justify-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                บันทึกลงระบบ
+                บันทึกเข้าสต๊อกร้าน
             </button>
         </div>
 
@@ -96,7 +128,7 @@
         <div class="flex justify-between items-center mb-4 px-1">
             <h3 id="list-title" class="text-xs font-bold text-gray-400 uppercase tracking-widest">สินค้าทั้งหมด</h3>
             <button id="clear-filter" onclick="filterCategory('all')" class="hidden text-xs text-emerald-600 hover:text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100/40 transition-all">
-                ดูรายการทั้งหมด
+                ดูรายการสต๊อกทั้งหมด
             </button>
         </div>
 
@@ -104,9 +136,55 @@
         <div id="productList" class="space-y-3"></div>
     </div>
 
+    <!-- Premium Toast Alert Container -->
+    <div id="toast" class="fixed bottom-5 right-5 px-5 py-3 rounded-xl text-sm font-semibold shadow-xl transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none z-50"></div>
+
     <script>
-        let products = JSON.parse(localStorage.getItem('myProducts') || '[]');
+        // Helper to generate local offset dates for default mock products
+        function getOffsetDateString(days) {
+            const d = new Date();
+            d.setDate(d.getDate() + days);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        // Initialize products from localStorage or use premium default mock data
+        let products = [];
+        const savedData = localStorage.getItem('myProducts');
+        if (savedData) {
+            products = JSON.parse(savedData);
+        } else {
+            // Seed defaults so categories immediately light up and function on first run
+            products = [
+                { name: "🥛 นมพาสเจอร์ไรส์รสจืด (แกลลอน)", date: getOffsetDateString(3) }, 
+                { name: "🍞 ขนมปังแซนด์วิชโฮลวีต", date: getOffsetDateString(9) },  
+                { name: "🥚 ไข่ไก่สดเบอร์ 2 (แพ็ก 30 ฟอง)", date: getOffsetDateString(22) }, 
+                { name: "🥩 เนื้ออกไก่สไลด์แช่เย็น", date: getOffsetDateString(-2) }    
+            ];
+            localStorage.setItem('myProducts', JSON.stringify(products));
+        }
+
         let currentFilter = 'all';
+
+        // Timezone-safe local date parser to fully prevent NaN bugs
+        function parseLocalDate(dateStr) {
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return new Date();
+            return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        }
+
+        function getDaysDifference(targetDateStr) {
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+
+            const expDate = parseLocalDate(targetDateStr);
+            expDate.setHours(0, 0, 0, 0);
+
+            const diffTime = expDate.getTime() - now.getTime();
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
 
         function getCategory(diff) {
             if (diff < 0) return 'expired';
@@ -115,16 +193,26 @@
             return 'safe';
         }
 
+        // Display beautiful micro-toasts instead of jarring system alerts
+        function showToast(message, type = 'error') {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 px-5 py-3 rounded-xl text-sm font-semibold shadow-xl transition-all duration-300 transform translate-y-0 opacity-100 bg-emerald-600 text-white z-50";
+            } else {
+                toast.className = "fixed bottom-5 right-5 px-5 py-3 rounded-xl text-sm font-semibold shadow-xl transition-all duration-300 transform translate-y-0 opacity-100 bg-red-600 text-white z-50";
+            }
+            
+            setTimeout(() => {
+                toast.className = "fixed bottom-5 right-5 px-5 py-3 rounded-xl text-sm font-semibold shadow-xl transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none z-50";
+            }, 3000);
+        }
+
         function updateStats() {
-            const now = new Date();
-            now.setHours(0,0,0,0);
             let safe = 0, warn = 0, urgent = 0, expired = 0;
 
             products.forEach(p => {
-                const expDate = new Date(p.date);
-                expDate.setHours(0,0,0,0);
-                const diff = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
-                
+                const diff = getDaysDifference(p.date);
                 const cat = getCategory(diff);
                 if (cat === 'expired') expired++;
                 else if (cat === 'urgent') urgent++;
@@ -139,21 +227,31 @@
         }
 
         function addItem() {
-            const name = document.getElementById('itemName').value.trim();
-            const date = document.getElementById('expiryDate').value;
-            if (!name || !date) return alert("กรุณาระบุข้อมูลสินค้าและวันหมดอายุให้ครบถ้วนด้วยนะครับ 😊");
+            const nameInput = document.getElementById('itemName');
+            const dateInput = document.getElementById('expiryDate');
+            
+            const name = nameInput.value.trim();
+            const date = dateInput.value;
+            
+            if (!name || !date) {
+                showToast("กรุณากรอกชื่อสินค้าและระบุวันหมดอายุให้ครบถ้วนด้วยนะครับ 😊", "error");
+                return;
+            }
 
             products.push({ name, date });
             localStorage.setItem('myProducts', JSON.stringify(products));
-            render();
             
-            document.getElementById('itemName').value = '';
-            document.getElementById('expiryDate').value = '';
+            nameInput.value = '';
+            dateInput.value = '';
+            
+            showToast("เพิ่มสินค้าเข้าสต๊อกร้านสำเร็จ!", "success");
+            render();
         }
 
         function deleteItem(index) {
             products.splice(index, 1);
             localStorage.setItem('myProducts', JSON.stringify(products));
+            showToast("ลบสินค้าออกจากสต๊อกแล้ว", "success");
             render();
         }
 
@@ -162,8 +260,14 @@
             const clearBtn = document.getElementById('clear-filter');
             const title = document.getElementById('list-title');
             
+            // Soft reset active visual states on all stat cards
             ['safe', 'warn', 'urgent', 'expired'].forEach(c => {
-                document.getElementById(`btn-${c}`).classList.remove(`active-filter-${c}`);
+                document.getElementById(`btn-${c}`).className = "stat-card cursor-pointer p-5 rounded-2xl text-center transition-all hover:bg-opacity-80 border";
+                // Restore their distinctive default background styles
+                if (c === 'safe') document.getElementById(`btn-safe`).classList.add('bg-emerald-50/60', 'border-emerald-100/80');
+                if (c === 'warn') document.getElementById(`btn-warn`).classList.add('bg-amber-50/60', 'border-amber-100/80');
+                if (c === 'urgent') document.getElementById(`btn-urgent`).classList.add('bg-orange-50/60', 'border-orange-100/80');
+                if (c === 'expired') document.getElementById(`btn-expired`).classList.add('bg-red-50/60', 'border-red-100/80');
             });
             
             if (cat === 'all') {
@@ -171,8 +275,14 @@
                 title.innerText = "สินค้าทั้งหมด";
             } else {
                 clearBtn.classList.remove('hidden');
+                // Apply the premium active class to the selected stat card
                 document.getElementById(`btn-${cat}`).classList.add(`active-filter-${cat}`);
-                const titles = { safe: '🟢 รายการปลอดภัย (>15 วัน)', warn: '🟡 รายการใกล้หมดอายุ (7-15 วัน)', urgent: '🟠 รายการเร่งด่วน (≤7 วัน)', expired: '🔴 รายการที่หมดอายุแล้ว' };
+                const titles = { 
+                    safe: '🟢 สต๊อกปลอดภัย (>15 วัน)', 
+                    warn: '🟡 สต๊อกใกล้หมดอายุ (7-15 วัน)', 
+                    urgent: '🟠 สต๊อกเร่งด่วน (≤7 วัน)', 
+                    expired: '🔴 หมดอายุในสต๊อกแล้ว' 
+                };
                 title.innerText = titles[cat];
             }
             render();
@@ -180,21 +290,17 @@
 
         function render() {
             const list = document.getElementById('productList');
-            const now = new Date();
-            now.setHours(0,0,0,0);
-
             let filteredProducts = products.map((p, idx) => ({ ...p, originalIndex: idx }));
 
             if (currentFilter !== 'all') {
                 filteredProducts = filteredProducts.filter(p => {
-                    const expDate = new Date(p.date);
-                    expDate.setHours(0,0,0,0);
-                    const diff = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+                    const diff = getDaysDifference(p.date);
                     return getCategory(diff) === currentFilter;
                 });
             }
 
-            filteredProducts.sort((a, b) => new Date(a.date) - new Date(b.date));
+            // Always display items sorted with closest to expiry first
+            filteredProducts.sort((a, b) => getDaysDifference(a.date) - getDaysDifference(b.date));
 
             if (filteredProducts.length === 0) {
                 list.innerHTML = `
@@ -207,9 +313,7 @@
             }
 
             list.innerHTML = filteredProducts.map(p => {
-                const expDate = new Date(p.date);
-                expDate.setHours(0,0,0,0);
-                const diff = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+                const diff = getDaysDifference(p.date);
                 
                 let cardClass = "hover:border-emerald-200/80";
                 let badge = `<span class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-100/50">เหลือ ${diff} วัน</span>`;
@@ -225,8 +329,10 @@
                     badge = `<span class="text-xs font-semibold text-amber-700 bg-amber-50 px-3 py-1 rounded-xl border border-amber-100/50">เหลือ ${diff} วัน</span>`;
                 }
 
+                // Thai Local Date Formatting
+                const expDate = parseLocalDate(p.date);
                 const options = { year: 'numeric', month: 'short', day: 'numeric' };
-                const formattedDate = new Date(p.date).toLocaleDateString('th-TH', options);
+                const formattedDate = expDate.toLocaleDateString('th-TH', options);
 
                 return `
                     <div class="p-4 border border-gray-100 rounded-2xl ${cardClass} flex justify-between items-center transition-all bg-white shadow-[0_2px_8px_-3px_rgba(0,0,0,0.03)] hover:shadow-md group animate-fade-in">
@@ -234,7 +340,7 @@
                             <span class="font-bold text-gray-700 text-sm tracking-tight">${p.name}</span>
                             <span class="text-xs text-gray-400 flex items-center gap-1.5 font-medium">
                                 <svg class="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                ควรบริโภคก่อน: ${formattedDate}
+                                วันหมดอายุ: ${formattedDate}
                             </span>
                         </div>
                         <div class="flex items-center gap-3">
@@ -249,7 +355,9 @@
             updateStats();
         }
 
+        // Initialize display
         render();
     </script>
 </body>
 </html>
+
